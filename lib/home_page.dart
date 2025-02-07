@@ -1,13 +1,27 @@
 import 'package:flutter/material.dart';
-import 'profile_sidebar.dart';
+import 'profile_sidebar.dart'; // Import Sidebar
 
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Home Screen")),
+      appBar: AppBar(
+        title: const Text("Welcome User"),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.person),
+            onPressed: () {
+              // Open Sidebar Menu
+              showDialog(
+                context: context,
+                builder: (BuildContext context) => const ProfileSidebar(),
+              );
+            },
+          ),
+        ],
+      ),
       body: Container(
         width: double.infinity,
         decoration: const BoxDecoration(
