@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:medicine_dispenser/login_page.dart'; // Ensure you import your LoginPage widget
+import 'package:medicine_dispenser/login_page.dart'; // Import the correct LoginPage
 
 void main() {
   runApp(const MyApp());
@@ -11,9 +11,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false, // Set here
-      title: 'Medicine Dispenser', // App title
-      home: const LoginPage(), // Home page is set here
+      debugShowCheckedModeBanner: false,
+      title: 'Medicine Dispenser',
+      home: const LoginScreen(), // Now uses the correct LoginPage
     );
   }
 }
