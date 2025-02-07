@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:medicine_dispenser/login_page.dart'; // Import the correct LoginPage
+import 'package:medicine_dispenser/login_page.dart';
+import 'package:medicine_dispenser/home_page.dart'; // Import the correct LoginPage
 
 void main() {
   runApp(const MyApp());
@@ -13,7 +14,14 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Medicine Dispenser',
-      home: const LoginScreen(), // Now uses the correct LoginPage
+      theme: ThemeData(
+        primarySwatch: Colors.teal,
+      ),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const LoginPage(),
+        '/home': (context) => const HomePage(),
+      },
     );
   }
 }

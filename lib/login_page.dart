@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'home_page.dart'; // Import home page
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -100,11 +99,7 @@ class LoginScreen extends StatelessWidget {
                   ),
                 ),
                 onPressed: () {
-                  // Navigate to HomePage on login
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const HomePage()),
-                  );
+                  Navigator.pushNamed(context, '/home');
                 },
                 child: const Text(
                   "Log in",
@@ -145,12 +140,7 @@ class LoginScreen extends StatelessWidget {
               // Google Login Button
               OutlinedButton.icon(
                 onPressed: () {
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => HomePage()),
-                    );
-                  });
+                  Navigator.pushNamed(context, '/home');
                 },
                 icon: Image.asset("assets/google_icon.png", height: 20),
                 label: const Text("Log in with Google"),

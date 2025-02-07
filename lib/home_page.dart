@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'profile_sidebar.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
