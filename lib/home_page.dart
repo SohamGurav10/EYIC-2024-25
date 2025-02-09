@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'profile_sidebar.dart'; // Import Sidebar
+import 'profile_sidebar.dart';
+import 'package:medicine_dispenser/additional_settings_page.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -89,8 +90,17 @@ class HomeScreen extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        _buildButton("Pill Details", () {}),
-                        _buildButton("Additional Settings", () {}),
+                        _buildButton("Pill Details", context, () {
+                          Navigator.pushNamed(context, '/pill_details');
+                        }),
+                        _buildButton("Additional Settings", context, () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    const AdditionalSettingsPage()),
+                          );
+                        }),
                       ],
                     ),
                   ],
@@ -146,7 +156,7 @@ class HomeScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          const Text(
             "Alarm Details",
             style: TextStyle(
               fontSize: 16,
@@ -200,7 +210,7 @@ class HomeScreen extends StatelessWidget {
         Expanded(
           child: Text(
             description,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 14,
               color: Colors.white,
             ),
@@ -211,7 +221,8 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildButton(String text, VoidCallback onPressed) {
+  Widget _buildButton(
+      String text, BuildContext context, VoidCallback onPressed) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.teal.shade400,
