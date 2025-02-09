@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:medicine_dispenser/login_page.dart';
-import 'package:medicine_dispenser/home_page.dart'; // Import the correct LoginPage
+import 'package:medicine_dispenser/home_page.dart';
+import 'package:medicine_dispenser/pill_details_screen.dart';
+import 'package:medicine_dispenser/pill_reload_page.dart';
+import 'package:medicine_dispenser/additional_settings_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -21,6 +24,8 @@ class MyApp extends StatelessWidget {
       routes: {
         '/': (context) => const LoginScreen(),
         '/home': (context) => const HomeScreen(),
+        '/pill_details': (context) => const PillDetailsScreen(),
+        '/additional_settings': (context) => const AdditionalSettingsPage(),
       },
     );
   }
