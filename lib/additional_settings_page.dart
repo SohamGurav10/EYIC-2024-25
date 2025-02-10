@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'add_new_pill.dart';
 
 class AdditionalSettingsPage extends StatelessWidget {
   const AdditionalSettingsPage({super.key});
@@ -43,7 +44,11 @@ class AdditionalSettingsPage extends StatelessWidget {
                   ),
                 ),
                 onPressed: () {
-                  // Implement Add New Pill functionality here
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const AddPillPage()),
+                  );
                 },
                 child: const Text(
                   "ADD NEW PILL",
