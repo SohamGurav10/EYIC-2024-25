@@ -4,6 +4,7 @@ import 'package:medicine_dispenser/home_page.dart';
 import 'package:medicine_dispenser/pill_details_screen.dart';
 import 'package:medicine_dispenser/pill_reload_page.dart';
 import 'package:medicine_dispenser/additional_settings_page.dart';
+import 'package:medicine_dispenser/add_new_pill.dart';
 
 void main() {
   runApp(const MyApp());
