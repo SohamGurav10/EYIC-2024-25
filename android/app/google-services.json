@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "232386619681",
+    "firebase_url": "https://medicine-dispenser-app-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "medicine-dispenser-app",
+    "storage_bucket": "medicine-dispenser-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:232386619681:android:59f93229288cd4ccc4f660",
+        "android_client_info": {
+          "package_name": "com.example.medicine_dispenser"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCeW1YzFY9i2BuGBCEHCR-H0sDecX0Bjw4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
