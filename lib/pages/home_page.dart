@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'profile_sidebar.dart';
-import 'package:medicine_dispenser/additional_settings_page.dart';
+import 'package:medicine_dispenser/pages/additional_settings_page.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
