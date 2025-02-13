@@ -1,6 +1,6 @@
 # medicine_dispenser
 
-## * A smart app to provide ease of use to the users with smart and automatic medicine dispenser. *
+## * A smart app to provide ease of use to the users with automatic medicine dispenser. *
 
 6|02|25 
 1. Added the main, login and home files to the project. 
