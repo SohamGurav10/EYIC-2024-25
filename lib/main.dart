@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:medicine_dispenser/login_page.dart';
-import 'package:medicine_dispenser/home_page.dart';
-import 'package:medicine_dispenser/pill_details_screen.dart';
+import 'package:medicine_dispenser/pages/login_screen.dart';
+import 'package:medicine_dispenser/pages/home_page.dart';
+import 'package:medicine_dispenser/pages/pill_details_screen.dart';
 // // import 'package:medicine_dispenser/pill_reload_page.dart';
-import 'package:medicine_dispenser/additional_settings_page.dart';
+import 'package:medicine_dispenser/pages/additional_settings_page.dart';
 // import 'package:medicine_dispenser/add_new_pill.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';

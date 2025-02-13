@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:medicine_dispenser/pill_reload_page.dart';
+import 'package:medicine_dispenser/pages/pill_reload_page.dart';
 
 class PillDetailsScreen extends StatelessWidget {
   const PillDetailsScreen({super.key});
