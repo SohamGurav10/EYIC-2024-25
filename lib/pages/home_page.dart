@@ -36,15 +36,6 @@ class HomeScreen extends StatelessWidget {
           children: [
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text("Welcome to Home Page!"),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context); // Go back to Login Page
-                  },
-                  child: const Text("Logout"),
-                ),
-              ],
             ),
             Expanded(
               child: SingleChildScrollView(
@@ -53,32 +44,6 @@ class HomeScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 40),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          "WELCOME USER",
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1.2,
-                            shadows: [
-                              Shadow(
-                                color: Colors.black26,
-                                blurRadius: 2,
-                                offset: Offset(1, 1),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const CircleAvatar(
-                          radius: 20,
-                          backgroundColor: Colors.white,
-                          child:
-                              Icon(Icons.person, size: 24, color: Colors.black),
-                        ),
-                      ],
-                    ),
                     const SizedBox(height: 20),
                     _buildInfoBox("Upcoming Alert", "Pill Name          Time"),
                     const SizedBox(height: 20),
