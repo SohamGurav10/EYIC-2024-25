@@ -8,7 +8,6 @@ import 'package:medicine_dispenser/pages/signup_screen.dart';
 import 'package:medicine_dispenser/providers/pill_providers.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-
 // import 'package:medicine_dispenser/pill_reload_page.dart';
 // import 'package:medicine_dispenser/add_new_pill.dart';
 // import 'package:firebase_auth/firebase_auth.dart';
