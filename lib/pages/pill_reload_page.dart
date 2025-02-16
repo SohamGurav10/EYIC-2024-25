@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:medicine_dispenser/providers/pill_providers.dart';
 import 'package:intl/intl.dart';
 
 class PillReloadPage extends StatefulWidget {
@@ -9,92 +11,11 @@ class PillReloadPage extends StatefulWidget {
 }
 
 class _PillReloadPageState extends State<PillReloadPage> {
-  String selectedPill = "Pill A"; // Default selected pill
-  String pillName = "Enter Pill Name";
-  int pillCount = 0;
-  String expiryDate = "DD|MM|YYYY"; // Default date format
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.teal.shade300,
-        title: const Text("RELOAD PILLS"),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.home, color: Colors.black),
-            onPressed: () {
-              Navigator.pop(context);
-            },
-          ),
-        ],
-      ),
-      body: Container(
-        width: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFFA6E3E9), Color(0xFF71C9CE)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // Pill Selection Buttons
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _pillButton("Pill A"),
-                  _pillButton("Pill B"),
-                  _pillButton("Pill C"),
-                ],
-              ),
-              const SizedBox(height: 30),
-
-              // Pill Information Section (Editable)
-              _pillInfo(),
-
-              const Spacer(),
-
-              // Start Reloading Button
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.teal.shade500,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  onPressed: () {
-                    // Handle pill reloading logic
-                  },
-                  child: const Text(
-                    "START RELOADING",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 20),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  String selectedPill = "Pill A";
+  final List<String> pillOptions = ["Pill A", "Pill B", "Pill C"];
 
   // Pill Selection Button
-  Widget _pillButton(String pillName) {
+  Widget _pillButton(PillProvider pillProvider, String pillName) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8),
       child: ElevatedButton(
@@ -105,6 +26,7 @@ class _PillReloadPageState extends State<PillReloadPage> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
           ),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         ),
         onPressed: () {
           setState(() {
@@ -123,7 +45,7 @@ class _PillReloadPageState extends State<PillReloadPage> {
   }
 
   // Editable Pill Information Section
-  Widget _pillInfo() {
+  Widget _pillInfo(PillProvider pillProvider) {
     return Container(
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
@@ -142,56 +64,88 @@ class _PillReloadPageState extends State<PillReloadPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _editableRow(
+            "Pill Name",
+            pillProvider.pillNames[selectedPill] ?? "Enter Pill Name",
+            () {
+              _editTextDialog(
+              context,
               "Pill Name",
-              pillName,
-              () => _editTextDialog("Pill Name", pillName, (value) {
-                    setState(() {
-                      pillName = value;
-                    });
-                  })),
+              pillProvider.pillNames[selectedPill] ?? "Enter Pill Name",
+              (value) {
+                pillProvider.updatePill(
+                selectedPill, 
+                value,
+                pillProvider.expiryDates[selectedPill] ?? "DD|MM|YYYY"),
+            }
+            ),
+            }
+          ),
           const Divider(color: Colors.teal, thickness: 1),
-          _pillCountRow("Number of pills added"),
+          _pillCountRow(pillProvider),
           const Divider(color: Colors.teal, thickness: 1),
-          _editableRow("Expiry Date", expiryDate, _selectExpiryDate),
+          _editableRow(
+            "Expiry Date",
+            pillProvider.expiryDates[selectedPill] ?? "DD|MM|YYYY",
+            () => _selectExpiryDate(context, pillProvider),
+          ),
         ],
       ),
     );
   }
 
-  // Editable Text Field Row
-  Widget _editableRow(String title, String value, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Row(
-          children: [
-            Expanded(
-              flex: 2,
-              child: Text(
-                title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
+  // Pill Count Row Widget
+  Widget _pillCountRow(PillProvider pillProvider) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          const Expanded(
+            flex: 2,
+            child: Text(
+              "Number of pills added",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.remove_circle, color: Colors.teal),
+                  onPressed: () {
+                    pillProvider.updatePillCount(selectedPill, -1);
+                  },
                 ),
-              ),
+                Text(
+                  pillProvider.pillCounts[selectedPill]
+                          ?.toString()
+                          .padLeft(2, '0') ??
+                      "00",
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.add_circle, color: Colors.teal),
+                  onPressed: () {
+                    pillProvider.updatePillCount(selectedPill, 1);
+                  },
+                ),
+              ],
             ),
-            Expanded(
-              flex: 3,
-              child: Text(
-                value,
-                style: const TextStyle(fontSize: 14, color: Colors.teal),
-              ),
-            ),
-            const Icon(Icons.edit_calendar, color: Colors.teal, size: 18),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  // Editable Number Counter for Pills
-  Widget _pillCountRow(String title) {
+  // Generic editable row widget
+  Widget _editableRow(String title, String value, VoidCallback onTap) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
@@ -208,31 +162,20 @@ class _PillReloadPageState extends State<PillReloadPage> {
           ),
           Expanded(
             flex: 3,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.remove_circle, color: Colors.teal),
-                  onPressed: () {
-                    setState(() {
-                      if (pillCount > 0) pillCount--;
-                    });
-                  },
+            child: GestureDetector(
+              onTap: onTap,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                Text(
-                  pillCount.toString().padLeft(2, '0'),
-                  style: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.bold),
+                child: Text(
+                  value,
+                  style: const TextStyle(fontSize: 16),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.add_circle, color: Colors.teal),
-                  onPressed: () {
-                    setState(() {
-                      pillCount++;
-                    });
-                  },
-                ),
-              ],
+              ),
             ),
           ),
         ],
@@ -240,8 +183,40 @@ class _PillReloadPageState extends State<PillReloadPage> {
     );
   }
 
-  // Date Picker Dialog for Expiry Date
-  Future<void> _selectExpiryDate() async {
+  // Edit Text Dialog
+  Future<void> _editTextDialog(BuildContext context, String title,
+      String initialValue, Function(String) onSave) async {
+    final TextEditingController controller =
+        TextEditingController(text: initialValue);
+
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Edit $title'),
+        content: TextField(
+          controller: controller,
+          decoration: InputDecoration(hintText: 'Enter $title'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              onSave(controller.text);
+              Navigator.pop(context);
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Date Picker Dialog
+  Future<void> _selectExpiryDate(
+      BuildContext context, PillProvider pillProvider) async {
     DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
@@ -251,40 +226,117 @@ class _PillReloadPageState extends State<PillReloadPage> {
 
     if (pickedDate != null) {
       setState(() {
-        expiryDate = DateFormat('dd|MM|yyyy').format(pickedDate);
+        String formattedDate = DateFormat('dd|MM|yyyy').format(pickedDate);
+        pillProvider.updatePill(
+            selectedPill,
+            pillProvider.pillNames[selectedPill] ?? "Enter Pill Name",
+            formattedDate);
       });
     }
   }
 
-  // Dialog for Editing Text Fields
-  Future<void> _editTextDialog(
-      String title, String currentValue, Function(String) onSave) async {
-    TextEditingController controller =
-        TextEditingController(text: currentValue);
-    await showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text("Edit $title"),
-          content: TextField(
-            controller: controller,
-            decoration: const InputDecoration(border: OutlineInputBorder()),
+  @override
+  Widget build(BuildContext context) {
+    final pillProvider = Provider.of<PillProvider>(context);
+
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.teal.shade300,
+        title: const Text("RELOAD PILLS"),
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: Container(
+        width: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFFA6E3E9), Color(0xFF71C9CE)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("Cancel"),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Pill Selection Buttons
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: pillOptions
+                        .map((pill) => _pillButton(pillProvider, pill))
+                        .toList(),
+                  ),
+                ),
+                const SizedBox(height: 30),
+
+                // Pill Information Card
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: _pillInfo(pillProvider),
+                  ),
+                ),
+
+                // Start Reloading Button
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.teal.shade500,
+                      minimumSize: const Size(double.infinity, 50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    onPressed: () {
+                      // Validate input before proceeding
+                      if (pillProvider.pillNames[selectedPill]?.isEmpty ??
+                          true) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Please enter a pill name'),
+                          ),
+                        );
+                        return;
+                      }
+
+                      if (pillProvider.pillCounts[selectedPill] == 0) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Please add at least one pill'),
+                          ),
+                        );
+                        return;
+                      }
+
+                      // TODO: Implement reload logic
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Starting pill reload...'),
+                        ),
+                      );
+                    },
+                    child: const Text(
+                      "START RELOADING",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-            ElevatedButton(
-              onPressed: () {
-                onSave(controller.text);
-                Navigator.pop(context);
-              },
-              child: const Text("Save"),
-            ),
-          ],
-        );
-      },
+          ),
+        ),
+      ),
     );
   }
 }
