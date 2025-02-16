@@ -75,7 +75,7 @@ class _PillReloadPageState extends State<PillReloadPage> {
                 pillProvider.updatePill(
                 selectedPill, 
                 value,
-                pillProvider.expiryDates[selectedPill] ?? "DD|MM|YYYY"),
+                pillProvider.expiryDates[selectedPill] ?? "DD|MM|YYYY", 10);
             }
             ),
             }
@@ -230,7 +230,7 @@ class _PillReloadPageState extends State<PillReloadPage> {
         pillProvider.updatePill(
             selectedPill,
             pillProvider.pillNames[selectedPill] ?? "Enter Pill Name",
-            formattedDate);
+            formattedDate, 10);
       });
     }
   }
