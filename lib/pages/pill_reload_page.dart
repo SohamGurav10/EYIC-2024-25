@@ -66,15 +66,19 @@ class _PillReloadPageState extends State<PillReloadPage> {
           _editableRow(
             "Pill Name",
             pillProvider.pillNames[selectedPill] ?? "Enter Pill Name",
-            () => _editTextDialog(
+            () {
+              _editTextDialog(
               context,
               "Pill Name",
               pillProvider.pillNames[selectedPill] ?? "Enter Pill Name",
               (value) {
-                pillProvider.updatePill(selectedPill, value,
-                    pillProvider.expiryDates[selectedPill] ?? "DD|MM|YYYY");
-              },
+                pillProvider.updatePill(
+                selectedPill, 
+                value,
+                pillProvider.expiryDates[selectedPill] ?? "DD|MM|YYYY"),
+            }
             ),
+            }
           ),
           const Divider(color: Colors.teal, thickness: 1),
           _pillCountRow(pillProvider),
