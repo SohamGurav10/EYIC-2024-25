@@ -1,0 +1,30 @@
+[33mafb3825[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Update main.dart
+[33mb80ffe0[m resolved bugs
+[33mcf466f6[m Merge branch 'main' of https://github.com/SohamGurav10/EYIC-2024-25
+[33m331369f[m updated home screen
+[33m79125bc[m Updated login_screen.dart
+[33m8614645[m Updated login_screen.dart
+[33mab7038c[m Merge branch 'main' of https://github.com/SohamGurav10/EYIC-2024-25
+[33m14e19c4[m Added phone number OTP authentication, signup screen, and Firestore user storage.
+[33mdf80e86[m updated login_screen file
+[33m0c3b79a[m Merge branch 'main' of https://github.com/SohamGurav10/EYIC-2024-25
+[33m482e8d2[m Integrated Firebase Authentication (Email Id and Password login)
+[33m6b405a2[m some changes
+[33m04f888d[m Update README.md
+[33mc4cb8a8[m Installed and updated intl package (0.20.2) for date formatting.
+[33m8a33fcf[m Update main.dart
+[33mead1257[m Merge branch 'main' of https://github.com/SohamGurav10/EYIC-2024-25
+[33mba4c6d4[m Added Firebase integration, configured Firestore & Realtime Database, set up Cloud Functions, initialized Firebase in main.dart, fixed missing firebase_options.dart, and resolved dependency issues.
+[33mce9d461[m updated the pill reload file
+[33mcce67db[m updated main file
+[33mdabb882[m updated readme
+[33m2715f4b[m added add new pill file
+[33m79b758b[m updated readme
+[33m87772ed[m updated readme
+[33mb4ace8e[m updated ReadMe
+[33mc9200cc[m added pill details file, added pill reload details file, added additional settings file
+[33m423ae69[m Added the profile side bar
+[33m2a4c215[m Added the code for profile sidebar
+[33m0f8530a[m fixed the navigation bug
+[33mdfcb352[m Added main, login and home pages file to the project
+[33m79da793[m Initial commit

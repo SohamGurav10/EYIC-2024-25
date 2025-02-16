@@ -1,20 +1,57 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'profile_sidebar.dart';
 import 'package:medicine_dispenser/pages/additional_settings_page.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  String fullName = "User"; // Default name
+
+  @override
+  void initState() {
+    super.initState();
+    fetchUserName();
+  }
+
+  Future<void> fetchUserName() async {
+    try {
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        var userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+        if (userDoc.exists) {
+          setState(() {
+            fullName = "${userDoc['first_name']} ${userDoc['last_name']}";
+          });
+        }
+      }
+    } catch (e) {
+      print("Error fetching user data: $e");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Welcome User"),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Image.asset('assets/logo.png', height: 30),
+            const SizedBox(width: 10),
+            const Text("MediMate"),
+          ],
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.person),
             onPressed: () {
-              // Open Sidebar Menu
               showDialog(
                 context: context,
                 builder: (BuildContext context) => const ProfileSidebar(),
@@ -25,6 +62,7 @@ class HomeScreen extends StatelessWidget {
       ),
       body: Container(
         width: double.infinity,
+        height: double.infinity, // Ensure full-screen coverage
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [Color(0xFFA6E3E9), Color(0xFF71C9CE)],
@@ -32,84 +70,45 @@ class HomeScreen extends StatelessWidget {
             end: Alignment.bottomCenter,
           ),
         ),
-        child: Column(
-          children: [
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text("Welcome to Home Page!"),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context); // Go back to Login Page
-                  },
-                  child: const Text("Logout"),
-                ),
-              ],
-            ),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 40),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          "WELCOME USER",
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1.2,
-                            shadows: [
-                              Shadow(
-                                color: Colors.black26,
-                                blurRadius: 2,
-                                offset: Offset(1, 1),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const CircleAvatar(
-                          radius: 20,
-                          backgroundColor: Colors.white,
-                          child:
-                              Icon(Icons.person, size: 24, color: Colors.black),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    _buildInfoBox("Upcoming Alert", "Pill Name          Time"),
-                    const SizedBox(height: 20),
-                    _buildInfoBox("Today's Pills",
-                        "Pill Name          Time          Time"),
-                    const SizedBox(height: 20),
-                    _buildAlarmDetailsBox(),
-                    const SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        _buildButton("Pill Details", context, () {
-                          Navigator.pushNamed(context, '/pill_details');
-                        }),
-                        _buildButton("Additional Settings", context, () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) =>
-                                    const AdditionalSettingsPage()),
-                          );
-                        }),
-                      ],
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const SizedBox(height: 10),
+              Text(
+                "WELCOME $fullName!",
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                  shadows: [
+                    Shadow(
+                      color: Colors.black26,
+                      blurRadius: 2,
+                      offset: Offset(1, 1),
                     ),
                   ],
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 20),
+              Expanded(child: _buildMainContent()),
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _buildMainContent() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        _buildInfoBox("Upcoming Alert", "Pill Name          Time"),
+        _buildInfoBox("Today's Pills", "Pill Name          Quantity & Timings"),
+        _buildAlarmDetailsBox(),
+        _buildButtonRow(),
+      ],
     );
   }
 
@@ -167,53 +166,37 @@ class HomeScreen extends StatelessWidget {
           Column(
             children: [
               const SizedBox(height: 10),
-              _buildAlarmRow(
-                  "DISMISSED", "Pill has been dispensed", Colors.orange),
-              _buildAlarmRow(
-                  "SNOOZED", "Time remaining till 40 min mark", Colors.orange),
+              _buildAlarmRow("DISMISSED", "Pill has been dispensed", Colors.orange),
+              _buildAlarmRow("SNOOZED", "Time remaining till 40 min mark", Colors.orange),
             ],
           ),
           const SizedBox(height: 5),
           const Text(
             "40 minutes passed since dosage time",
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.orange,
-            ),
+            style: TextStyle(fontSize: 12, color: Colors.orange),
           ),
           const SizedBox(height: 5),
           const Text(
             "NOTIFY THE PATIENT IMMEDIATELY",
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: Colors.red,
-            ),
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.red),
           ),
         ],
       ),
     );
   }
 
-  static Widget _buildAlarmRow(String title, String description, Color color) {
+  Widget _buildAlarmRow(String title, String description, Color color) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           title,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-            color: color,
-          ),
+          style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: color),
         ),
         Expanded(
           child: Text(
             description,
-            style: const TextStyle(
-              fontSize: 14,
-              color: Colors.white,
-            ),
+            style: const TextStyle(fontSize: 14, color: Colors.white),
             textAlign: TextAlign.right,
           ),
         ),
@@ -221,21 +204,32 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildButton(
-      String text, BuildContext context, VoidCallback onPressed) {
+  Widget _buildButtonRow() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        _buildButton("Pill Details", context, () {
+          Navigator.pushNamed(context, '/pill_details');
+        }),
+        _buildButton("Additional Settings", context, () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AdditionalSettingsPage()),
+          );
+        }),
+      ],
+    );
+  }
+
+  Widget _buildButton(String text, BuildContext context, VoidCallback onPressed) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.teal.shade400,
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
       onPressed: onPressed,
-      child: Text(
-        text,
-        style: const TextStyle(color: Colors.white),
-      ),
+      child: Text(text, style: const TextStyle(color: Colors.white)),
     );
   }
 }
