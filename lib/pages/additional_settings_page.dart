@@ -1,8 +1,45 @@
 import 'package:flutter/material.dart';
-import 'add_new_pill.dart';
+import 'package:medicine_dispenser/pages/add_new_pill.dart';
 
-class AdditionalSettingsPage extends StatelessWidget {
+class AdditionalSettingsPage extends StatefulWidget {
   const AdditionalSettingsPage({super.key});
+
+  @override
+  _AdditionalSettingsPageState createState() => _AdditionalSettingsPageState();
+}
+
+class _AdditionalSettingsPageState extends State<AdditionalSettingsPage> {
+  List<Map<String, dynamic>> pills = [
+    {"name": "Add Pill", "time": "08:00 AM", "quantity": 1},
+    {"name": "Add Pill", "time": "08:00 AM", "quantity": 1},
+    {"name": "Add Pill", "time": "08:00 AM", "quantity": 1},
+  ];
+  int pillIndex = 0;
+
+  Future<void> _navigateToAddPill() async {
+    if (pillIndex >= 3) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Maximum 3 pills can be added')),
+      );
+      return;
+    }
+
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const AddPillPage()),
+    );
+
+    if (result != null && mounted) {
+      setState(() {
+        pills[pillIndex] = {
+          "name": result["name"],
+          "time": result["time"],
+          "quantity": result["quantity"],
+        };
+        pillIndex++;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +70,6 @@ class AdditionalSettingsPage extends StatelessWidget {
           padding: const EdgeInsets.all(20),
           child: Column(
             children: [
-              // Add New Pill Button
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.teal.shade400,
@@ -43,44 +79,32 @@ class AdditionalSettingsPage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const AddPillPage()),
-                  );
-                },
+                onPressed: _navigateToAddPill,
                 child: const Text(
                   "ADD NEW PILL",
                   style: TextStyle(color: Colors.white, fontSize: 16),
                 ),
               ),
-
               const SizedBox(height: 20),
-
-              // Reload Pills Section
               _sectionContainer(
                 title: "RELOAD PILLS",
                 child: Column(
                   children: [
                     _pillReloadHeader(),
-                    _pillRow("Pill A", "qq", "A"),
-                    _pillRow("Pill B", "rr", "B"),
-                    _pillRow("Pill C", "ss", "C"),
+                    _pillRow(pills[0]["name"], "Remaining Qty: 10", "A"),
+                    _pillRow(pills[1]["name"], "Remaining Qty: 10", "B"),
+                    _pillRow(pills[2]["name"], "Remaining Qty: 10", "C"),
                   ],
                 ),
               ),
-
               const SizedBox(height: 20),
-
-              // Update Dosage Section
               _sectionContainer(
                 title: "UPDATE DOSAGE/PRESCRIPTION",
                 child: Column(
                   children: [
-                    _dosageButton("Pill A"),
-                    _dosageButton("Pill B"),
-                    _dosageButton("Pill C"),
+                    _dosageButton(pills[0]["name"], 1),
+                    _dosageButton(pills[1]["name"], 2),
+                    _dosageButton(pills[2]["name"], 3),
                   ],
                 ),
               ),
@@ -91,7 +115,6 @@ class AdditionalSettingsPage extends StatelessWidget {
     );
   }
 
-  // Section Container
   Widget _sectionContainer({required String title, required Widget child}) {
     return Container(
       padding: const EdgeInsets.all(15),
@@ -116,7 +139,6 @@ class AdditionalSettingsPage extends StatelessWidget {
     );
   }
 
-  // Pills Header Row
   Widget _pillReloadHeader() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -134,7 +156,6 @@ class AdditionalSettingsPage extends StatelessWidget {
     );
   }
 
-  // Pill Row
   Widget _pillRow(String pillName, String remaining, String container) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5),
@@ -149,7 +170,6 @@ class AdditionalSettingsPage extends StatelessWidget {
     );
   }
 
-  // Pill Button
   Widget _pillButton(String text) {
     return Expanded(
       child: ElevatedButton(
@@ -171,7 +191,6 @@ class AdditionalSettingsPage extends StatelessWidget {
     );
   }
 
-  // Pill Text Field
   Widget _pillText(String text) {
     return Expanded(
       child: Container(
@@ -187,8 +206,7 @@ class AdditionalSettingsPage extends StatelessWidget {
     );
   }
 
-  // Dosage Update Button
-  Widget _dosageButton(String text) {
+  Widget _dosageButton(String text, int index) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5),
       child: ElevatedButton(
@@ -199,9 +217,7 @@ class AdditionalSettingsPage extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
           ),
         ),
-        onPressed: () {
-          // Implement dosage update logic
-        },
+        onPressed: () {},
         child: Text(
           text,
           style: const TextStyle(color: Colors.white),

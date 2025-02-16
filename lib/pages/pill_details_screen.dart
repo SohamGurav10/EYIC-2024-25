@@ -1,8 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:medicine_dispenser/pages/pill_reload_page.dart';
+import 'package:provider/provider.dart';
+import 'package:medicine_dispenser/providers/pill_providers.dart';
 
-class PillDetailsScreen extends StatelessWidget {
+class PillDetailsScreen extends StatefulWidget {
   const PillDetailsScreen({super.key});
+
+  @override
+  _PillDetailsScreenState createState() => _PillDetailsScreenState();
+}
+
+class _PillDetailsScreenState extends State<PillDetailsScreen> {
+  String selectedPill = "Pill A"; // Default selected pill
 
   @override
   Widget build(BuildContext context) {
@@ -20,65 +29,85 @@ class PillDetailsScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: Container(
-        width: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFFA6E3E9), Color(0xFF71C9CE)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+      body: Consumer<PillProvider>(
+        builder: (context, pillProvider, child) {
+          return Container(
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFFA6E3E9), Color(0xFF71C9CE)],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  _pillTab("Pill A", isSelected: true),
-                  _pillTab("Pill B"),
-                  _pillTab("Pill C"),
+                  // Pill Selection Buttons
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _pillButton("Pill A"),
+                      _pillButton("Pill B"),
+                      _pillButton("Pill C"),
+                    ],
+                  ),
+                  const SizedBox(height: 30),
+
+                  // Pill Information Section (NON-EDITABLE)
+                  _infoSection(context, selectedPill),
+
+                  const Spacer(),
+
+                  // Action Buttons
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _actionButton("RELOAD PILLS", () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const PillReloadPage()),
+                        );
+                      }),
+                      _actionButton("CLOSE", () {
+                        Navigator.pop(context);
+                      }),
+                    ],
+                  ),
                 ],
               ),
-              const SizedBox(height: 20),
-              _infoSection("Pill Name", "Display pill name"),
-              _infoSection(
-                  "Pill Quantity Remaining", "Display Remaining pill quantity"),
-              _infoSection("Expiry Date", "Display expiry date of the pills"),
-              const Spacer(),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _actionButton("RELOAD PILLS", context, () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const PillReloadPage()),
-                    );
-                  }),
-                  _actionButton("CLOSE", context, () {
-                    Navigator.pop(context);
-                  }),
-                ],
-              ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }
 
-  Widget _pillTab(String text, {bool isSelected = false}) {
+  // Pill Selection Button
+  Widget _pillButton(String pill) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: Chip(
-        backgroundColor: isSelected ? Colors.teal : Colors.teal.shade100,
-        label: Text(
-          text,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: selectedPill == pill
+              ? Colors.teal.shade700
+              : Colors.teal.shade200,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        onPressed: () {
+          setState(() {
+            selectedPill = pill;
+          });
+        },
+        child: Text(
+          pill,
           style: TextStyle(
-            color: isSelected ? Colors.white : Colors.black,
+            color: selectedPill == pill ? Colors.white : Colors.black,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -86,33 +115,69 @@ class PillDetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _infoSection(String title, String description) {
+  // Pill Information Section (NON-EDITABLE)
+  Widget _infoSection(BuildContext context, String pill) {
+    var pillProvider = Provider.of<PillProvider>(context);
+
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
-        color: Colors.teal.shade100,
-        borderRadius: BorderRadius.circular(8),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black26,
+            blurRadius: 8,
+            spreadRadius: 2,
+            offset: const Offset(2, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
-          ),
-          const SizedBox(height: 5),
-          Text(description),
+          _infoRow("Pill Name", pillProvider.pillNames[pill] ?? "Not Set"),
+          const Divider(color: Colors.teal, thickness: 1),
+          _infoRow("Pill Quantity Remaining",
+              "${pillProvider.pillCounts[pill] ?? 0} Remaining"),
+          const Divider(color: Colors.teal, thickness: 1),
+          _infoRow(
+              "Expiry Date", pillProvider.expiryDates[pill] ?? "DD|MM|YYYY"),
         ],
       ),
     );
   }
 
-  Widget _actionButton(
-      String text, BuildContext context, VoidCallback onPressed) {
+  // Non-Editable Text Row
+  Widget _infoRow(String title, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 2,
+            child: Text(
+              title,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: Text(
+              value,
+              style: const TextStyle(fontSize: 14, color: Colors.teal),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Action Button Widget
+  Widget _actionButton(String text, VoidCallback onPressed) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.teal.shade400,
