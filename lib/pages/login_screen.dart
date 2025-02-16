@@ -81,7 +81,7 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  // 🔹 Phone Authentication (OTP)
+  // 🔹 Send OTP (Phone Authentication)
   Future<void> sendOTP() async {
     if (phoneController.text.isEmpty) {
       setState(() => errorMessage = "Phone number cannot be empty");
@@ -90,30 +90,40 @@ class _LoginScreenState extends State<LoginScreen> {
 
     setState(() => isLoading = true);
 
-    await FirebaseAuth.instance.verifyPhoneNumber(
-      phoneNumber: phoneController.text.trim(),
-      verificationCompleted: (PhoneAuthCredential credential) async {
-        await FirebaseAuth.instance.signInWithCredential(credential);
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
-        );
-      },
-      verificationFailed: (FirebaseAuthException e) {
-        setState(() {
-          errorMessage = e.message;
-          isLoading = false;
-        });
-      },
-      codeSent: (String verificationId, int? resendToken) {
-        setState(() {
+    try {
+      await FirebaseAuth.instance.verifyPhoneNumber(
+        phoneNumber: phoneController.text.trim(),
+        verificationCompleted: (PhoneAuthCredential credential) async {
+          await FirebaseAuth.instance.signInWithCredential(credential);
+          if (mounted) {
+            Navigator.pushReplacementNamed(context, '/home');
+          }
+        },
+        verificationFailed: (FirebaseAuthException e) {
+          if (mounted) {
+            setState(() {
+              errorMessage = e.message;
+              isLoading = false;
+            });
+          }
+        },
+        codeSent: (String verificationId, int? resendToken) {
+          if (mounted) {
+            setState(() {
+              this.verificationId = verificationId;
+              isPhoneAuthRequested = true;
+            });
+          }
+        },
+        codeAutoRetrievalTimeout: (String verificationId) {
           this.verificationId = verificationId;
-          isPhoneAuthRequested = true;
-          isLoading = false;
-        });
-      },
-      codeAutoRetrievalTimeout: (String verificationId) {},
-    );
+        },
+        timeout: const Duration(seconds: 60),
+      );
+    } catch (e) {
+      print("❌ Error Sending OTP: $e");
+      setState(() => isLoading = false);
+    }
   }
 
   // 🔹 Verify OTP
@@ -132,10 +142,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       await FirebaseAuth.instance.signInWithCredential(credential);
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
-      );
+      navigateToHome();
     } catch (e) {
       setState(() {
         errorMessage = "Invalid OTP. Please try again.";
@@ -174,7 +181,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
               // 🔹 App Tagline
               const Text("MediMate",
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black)),
+                  style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black)),
               const Text("Your Trusted Partner in Timely Medication.",
                   style: TextStyle(fontSize: 14, color: Colors.black54)),
 
@@ -209,7 +219,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
               const SizedBox(height: 10),
 
-              TextButton(onPressed: () {}, child: const Text("Forgot Password?")),
+              TextButton(
+                  onPressed: () {}, child: const Text("Forgot Password?")),
 
               // 🔹 Login Button
               ElevatedButton(
@@ -236,7 +247,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   filled: true,
                   fillColor: Colors.white,
                   hintText: "Phone Number",
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8)),
                 ),
               ),
 
@@ -256,16 +268,19 @@ class _LoginScreenState extends State<LoginScreen> {
                     filled: true,
                     fillColor: Colors.white,
                     hintText: "Enter OTP",
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8)),
                   ),
                 ),
                 const SizedBox(height: 10),
-                ElevatedButton(onPressed: isLoading ? null : verifyOTP, child: const Text("Verify OTP")),
+                ElevatedButton(
+                    onPressed: isLoading ? null : verifyOTP,
+                    child: const Text("Verify OTP")),
               ],
 
               const SizedBox(height: 20),
 
-              // 🔹 Google Sign-In Button
+              // 🔹 Google Sign-In
               OutlinedButton.icon(
                 onPressed: isLoading ? null : signInWithGoogle,
                 icon: Image.asset("assets/google_icon.png", height: 20),
