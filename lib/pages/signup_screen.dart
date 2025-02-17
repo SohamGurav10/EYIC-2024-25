@@ -3,7 +3,6 @@ import 'package:medicine_dispenser/pages/home_page.dart';
 import 'package:medicine_dispenser/pages/login_screen.dart';
 import 'package:medicine_dispenser/services/signup_auth_service.dart';
 
-
 class SignupPage extends StatefulWidget {
   const SignupPage({super.key});
 
@@ -39,12 +38,10 @@ class _SignupPageState extends State<SignupPage> {
     );
 
     if (error == null) {
-      // (Optional) Show Success Message Before Navigating
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Account created! Please verify your email.")),
       );
 
-      // Navigate to Home Page
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const HomeScreen()),
@@ -62,6 +59,7 @@ class _SignupPageState extends State<SignupPage> {
     return Scaffold(
       body: Container(
         width: double.infinity,
+        height: double.infinity, // Ensures full screen
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [Color(0xFFA6E3E9), Color(0xFF71C9CE)],
@@ -69,82 +67,83 @@ class _SignupPageState extends State<SignupPage> {
             end: Alignment.bottomCenter,
           ),
         ),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const SizedBox(height: 60),
+        child: Column(
+          children: [
+            const SizedBox(height: 60),
 
-                // 🔹 Logo
-                const CircleAvatar(
-                  radius: 50,
-                  backgroundColor: Colors.white,
-                  backgroundImage: AssetImage("assets/logo.png"),
-                ),
-
-                const SizedBox(height: 20),
-
-                // 🔹 App Name
-                const Text(
-                  "MediMate",
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black),
-                ),
-
-                const SizedBox(height: 20),
-
-                // 🔹 Input Fields
-                _buildTextField(firstNameController, "First Name", "Enter your first name"),
-                _buildTextField(lastNameController, "Last Name", "Enter your last name"),
-                _buildEmailField(),
-                _buildTextField(phoneController, "Phone Number", "Enter your phone number", keyboardType: TextInputType.phone),
-                _buildPasswordField(),
-
-                const SizedBox(height: 10),
-
-                // 🔹 Error Message
-                if (errorMessage != null)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: Text(
-                      errorMessage!,
-                      style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-
-                // 🔹 Sign Up Button
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    minimumSize: const Size(double.infinity, 50),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                  onPressed: isLoading ? null : signUp,
-                  child: isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text("Sign Up", style: TextStyle(fontSize: 16, color: Colors.white)),
-                ),
-
-                const SizedBox(height: 10),
-
-                // 🔹 Sign-in Instead Button
-                TextButton(
-                  onPressed: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => const LoginScreen()),
-                    );
-                  },
-                  child: const Text(
-                    "Already have an account? Sign in instead",
-                    style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ],
+            // 🔹 Logo & App Name
+            const CircleAvatar(
+              radius: 50,
+              backgroundColor: Colors.white,
+              backgroundImage: AssetImage("assets/logo.png"),
             ),
-          ),
+            const SizedBox(height: 10),
+            const Text(
+              "MediMate",
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black),
+            ),
+            const SizedBox(height: 10),
+
+            // 🔹 Form Section (Expanded to fill space)
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      _buildTextField(firstNameController, "First Name", "Enter your first name"),
+                      _buildTextField(lastNameController, "Last Name", "Enter your last name"),
+                      _buildEmailField(),
+                      _buildTextField(phoneController, "Phone Number", "Enter your phone number", keyboardType: TextInputType.phone),
+                      _buildPasswordField(),
+
+                      const SizedBox(height: 10),
+
+                      // 🔹 Error Message
+                      if (errorMessage != null)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: Text(
+                            errorMessage!,
+                            style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+
+                      // 🔹 Sign Up Button
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          minimumSize: const Size(double.infinity, 50),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                        onPressed: isLoading ? null : signUp,
+                        child: isLoading
+                            ? const CircularProgressIndicator(color: Colors.white)
+                            : const Text("Sign Up", style: TextStyle(fontSize: 16, color: Colors.white)),
+                      ),
+
+                      const SizedBox(height: 10),
+
+                      // 🔹 Sign-in Instead Button
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => const LoginScreen()),
+                          );
+                        },
+                        child: const Text(
+                          "Already have an account? Sign in instead",
+                          style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
