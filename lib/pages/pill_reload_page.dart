@@ -63,23 +63,15 @@ class _PillReloadPageState extends State<PillReloadPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _editableRow(
-            "Pill Name",
-            pillProvider.pillNames[selectedPill] ?? "Enter Pill Name",
-            () {
-              _editTextDialog(
-              context,
-              "Pill Name",
-              pillProvider.pillNames[selectedPill] ?? "Enter Pill Name",
-              (value) {
-                pillProvider.updatePill(
-                selectedPill, 
-                value,
-                pillProvider.expiryDates[selectedPill] ?? "DD|MM|YYYY", 10);
-            }
-            ),
-            }
-          ),
+          _editableRow("Pill Name",
+              pillProvider.pillNames[selectedPill] ?? "Enter Pill Name", () {
+            _editTextDialog(context, "Pill Name",
+                pillProvider.pillNames[selectedPill] ?? "Enter Pill Name",
+                (value) {
+              pillProvider.updatePill(selectedPill, value,
+                  pillProvider.expiryDates[selectedPill] ?? "DD|MM|YYYY", 10);
+            });
+          }),
           const Divider(color: Colors.teal, thickness: 1),
           _pillCountRow(pillProvider),
           const Divider(color: Colors.teal, thickness: 1),
@@ -230,7 +222,8 @@ class _PillReloadPageState extends State<PillReloadPage> {
         pillProvider.updatePill(
             selectedPill,
             pillProvider.pillNames[selectedPill] ?? "Enter Pill Name",
-            formattedDate, 10);
+            formattedDate,
+            10);
       });
     }
   }
@@ -264,72 +257,18 @@ class _PillReloadPageState extends State<PillReloadPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Pill Selection Buttons
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: pillOptions
                         .map((pill) => _pillButton(pillProvider, pill))
                         .toList(),
                   ),
                 ),
                 const SizedBox(height: 30),
-
-                // Pill Information Card
                 Expanded(
                   child: SingleChildScrollView(
                     child: _pillInfo(pillProvider),
-                  ),
-                ),
-
-                // Start Reloading Button
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 20),
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.teal.shade500,
-                      minimumSize: const Size(double.infinity, 50),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    onPressed: () {
-                      // Validate input before proceeding
-                      if (pillProvider.pillNames[selectedPill]?.isEmpty ??
-                          true) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Please enter a pill name'),
-                          ),
-                        );
-                        return;
-                      }
-
-                      if (pillProvider.pillCounts[selectedPill] == 0) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Please add at least one pill'),
-                          ),
-                        );
-                        return;
-                      }
-
-                      // TODO: Implement reload logic
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Starting pill reload...'),
-                        ),
-                      );
-                    },
-                    child: const Text(
-                      "START RELOADING",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
                   ),
                 ),
               ],
