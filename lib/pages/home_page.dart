@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'profile_sidebar.dart';
-import 'package:medicine_dispenser/pages/additional_settings_page.dart';
+// import 'package:medicine_dispenser/pages/additional_settings_page.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -62,7 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: Container(
         width: double.infinity,
-        height: double.infinity, // Ensure full-screen coverage
+        height: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [Color(0xFFA6E3E9), Color(0xFF71C9CE)],
@@ -107,7 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _buildInfoBox("Upcoming Alert", "Pill Name          Time"),
         _buildInfoBox("Today's Pills", "Pill Name          Quantity & Timings"),
         _buildAlarmDetailsBox(),
-        _buildButtonRow(),
+        _buildPillDetailsButton(),
       ],
     );
   }
@@ -204,32 +204,20 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildButtonRow() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        _buildButton("Pill Details", context, () {
+  Widget _buildPillDetailsButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.teal.shade600,
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+        onPressed: () {
           Navigator.pushNamed(context, '/pill_details');
-        }),
-        _buildButton("Additional Settings", context, () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const AdditionalSettingsPage()),
-          );
-        }),
-      ],
-    );
-  }
-
-  Widget _buildButton(String text, BuildContext context, VoidCallback onPressed) {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.teal.shade400,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        },
+        child: const Text("Pill Details", style: TextStyle(fontSize: 18, color: Colors.white)),
       ),
-      onPressed: onPressed,
-      child: Text(text, style: const TextStyle(color: Colors.white)),
     );
   }
 }
