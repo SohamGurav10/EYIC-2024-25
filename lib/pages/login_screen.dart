@@ -21,7 +21,6 @@ class _LoginScreenState extends State<LoginScreen> {
   String? errorMessage;
   bool isLoading = false;
 
-  // 🔹 Email/Password Login
   Future<void> signInWithEmail() async {
     if (emailController.text.isEmpty || passwordController.text.isEmpty) {
       setState(() => errorMessage = "Email and password cannot be empty");
@@ -48,7 +47,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  // 🔹 Google Sign-In
   Future<void> signInWithGoogle() async {
     setState(() => isLoading = true);
 
@@ -83,6 +81,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       body: Container(
         width: double.infinity,
+        height: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [Color(0xFFA6E3E9), Color(0xFF71C9CE)],
@@ -90,130 +89,104 @@ class _LoginScreenState extends State<LoginScreen> {
             end: Alignment.bottomCenter,
           ),
         ),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const SizedBox(height: 80),
-
-              // 🔹 App Logo
-              CircleAvatar(
-                radius: 50,
-                backgroundColor: Colors.white,
-                backgroundImage: AssetImage("assets/logo.png"),
-              ),
-
-              const SizedBox(height: 20),
-
-              // 🔹 App Tagline
-              const Text(
-                "MediMate",
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black),
-              ),
-              const Text(
-                "Your Trusted Partner in Timely Medication.",
-                style: TextStyle(fontSize: 14, color: Colors.black54),
-              ),
-
-              const SizedBox(height: 30),
-
-              // 🔹 Email Field
-              TextField(
-                controller: emailController,
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: Colors.white,
-                  hintText: "Email",
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+        child: Column(
+          children: [
+            const SizedBox(height: 80),
+            const CircleAvatar(
+              radius: 50,
+              backgroundColor: Colors.white,
+              backgroundImage: AssetImage("assets/logo.png"),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              "MediMate",
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black),
+            ),
+            const Text(
+              "Your Trusted Partner in Timely Medication.",
+              style: TextStyle(fontSize: 14, color: Colors.black54),
+            ),
+            const SizedBox(height: 30),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    TextField(
+                      controller: emailController,
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: Colors.white,
+                        hintText: "Email",
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                    ),
+                    const SizedBox(height: 15),
+                    TextField(
+                      controller: passwordController,
+                      obscureText: true,
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: Colors.white,
+                        hintText: "Password",
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    TextButton(onPressed: () {}, child: const Text("Forgot Password?")),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        minimumSize: const Size(double.infinity, 50),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      onPressed: isLoading ? null : signInWithEmail,
+                      child: isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text("Log in", style: TextStyle(color: Colors.white)),
+                    ),
+                    const SizedBox(height: 20),
+                    Row(children: [Expanded(child: Divider()), const Text(" OR "), Expanded(child: Divider())]),
+                    const SizedBox(height: 10),
+                    OutlinedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const PhoneAuthScreen()),
+                        );
+                      },
+                      child: const Text("Phone Based Login"),
+                    ),
+                    const SizedBox(height: 20),
+                    Row(children: [Expanded(child: Divider()), const Text(" OR "), Expanded(child: Divider())]),
+                    const SizedBox(height: 10),
+                    OutlinedButton.icon(
+                      onPressed: isLoading ? null : signInWithGoogle,
+                      icon: Image.asset("assets/google_icon.png", height: 20),
+                      label: const Text("Log in with Google"),
+                    ),
+                    const SizedBox(height: 20),
+                    OutlinedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const SignupPage()),
+                        );
+                      },
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.blue),
+                        minimumSize: const Size(double.infinity, 50),
+                      ),
+                      child: const Text(
+                        "New to MediMate? Sign Up instead",
+                        style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-
-              const SizedBox(height: 15),
-
-              // 🔹 Password Field
-              TextField(
-                controller: passwordController,
-                obscureText: true,
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: Colors.white,
-                  hintText: "Password",
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-              ),
-
-              const SizedBox(height: 10),
-
-              // 🔹 Forgot Password Button
-              TextButton(onPressed: () {}, child: const Text("Forgot Password?")),
-
-              // 🔹 Login Button
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  minimumSize: const Size(double.infinity, 50),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-                onPressed: isLoading ? null : signInWithEmail,
-                child: isLoading
-                    ? CircularProgressIndicator(color: Colors.white)
-                    : const Text("Log in", style: TextStyle(color: Colors.white)),
-              ),
-
-              const SizedBox(height: 20),
-
-              // 🔹 OR Divider
-              Row(children: [Expanded(child: Divider()), const Text(" OR "), Expanded(child: Divider())]),
-
-              const SizedBox(height: 10),
-
-              // 🔹 Phone-Based Login Button
-              OutlinedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const PhoneAuthScreen()),
-                  );
-                },
-                child: const Text("Phone Based Login"),
-              ),
-
-              const SizedBox(height: 20),
-
-              // 🔹 OR Divider
-              Row(children: [Expanded(child: Divider()), const Text(" OR "), Expanded(child: Divider())]),
-
-              const SizedBox(height: 10),
-
-              // 🔹 Google Sign-In Button
-              OutlinedButton.icon(
-                onPressed: isLoading ? null : signInWithGoogle,
-                icon: Image.asset("assets/google_icon.png", height: 20),
-                label: const Text("Log in with Google"),
-              ),
-
-              const SizedBox(height: 20),
-
-              // 🔹 Sign Up Button (New)
-              OutlinedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const SignupPage()),
-                  );
-                },
-                style: OutlinedButton.styleFrom(
-                  side: BorderSide(color: Colors.blue),
-                  minimumSize: const Size(double.infinity, 50),
-                ),
-                child: const Text(
-                  "New to MediMate? Sign Up instead",
-                  style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
