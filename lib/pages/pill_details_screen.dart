@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:medicine_dispenser/pages/pill_reload_page.dart';
+import 'package:medicine_dispenser/pages/additional_settings_page.dart';
 import 'package:provider/provider.dart';
 import 'package:medicine_dispenser/providers/pill_providers.dart';
 
@@ -11,7 +12,7 @@ class PillDetailsScreen extends StatefulWidget {
 }
 
 class _PillDetailsScreenState extends State<PillDetailsScreen> {
-  String selectedPill = "Pill A"; // Default selected pill
+  String selectedContainer = "Container A"; // Default selection
 
   @override
   Widget build(BuildContext context) {
@@ -45,19 +46,19 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Pill Selection Buttons
+                  // Container Selection Buttons
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      _pillButton("Pill A"),
-                      _pillButton("Pill B"),
-                      _pillButton("Pill C"),
+                      _containerButton("Container A"),
+                      _containerButton("Container B"),
+                      _containerButton("Container C"),
                     ],
                   ),
                   const SizedBox(height: 30),
 
-                  // Pill Information Section (NON-EDITABLE)
-                  _infoSection(context, selectedPill),
+                  // Display Pill Data for the Selected Container
+                  _infoSection(context, selectedContainer, pillProvider),
 
                   const Spacer(),
 
@@ -70,6 +71,14 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
                           context,
                           MaterialPageRoute(
                               builder: (context) => const PillReloadPage()),
+                        );
+                      }),
+                      _actionButton("ADDITIONAL SETTINGS", () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  const AdditionalSettingsPage()),
                         );
                       }),
                       _actionButton("CLOSE", () {
@@ -86,13 +95,13 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
     );
   }
 
-  // Pill Selection Button
-  Widget _pillButton(String pill) {
+  // Container Selection Button
+  Widget _containerButton(String container) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8),
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: selectedPill == pill
+          backgroundColor: selectedContainer == container
               ? Colors.teal.shade700
               : Colors.teal.shade200,
           shape: RoundedRectangleBorder(
@@ -101,13 +110,13 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
         ),
         onPressed: () {
           setState(() {
-            selectedPill = pill;
+            selectedContainer = container;
           });
         },
         child: Text(
-          pill,
+          container,
           style: TextStyle(
-            color: selectedPill == pill ? Colors.white : Colors.black,
+            color: selectedContainer == container ? Colors.white : Colors.black,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -115,10 +124,9 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
     );
   }
 
-  // Pill Information Section (NON-EDITABLE)
-  Widget _infoSection(BuildContext context, String pill) {
-    var pillProvider = Provider.of<PillProvider>(context);
-
+  // Pill Information Section
+  Widget _infoSection(
+      BuildContext context, String container, PillProvider pillProvider) {
     return Container(
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
@@ -136,16 +144,29 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _infoRow("Pill Name", pillProvider.pillNames[pill] ?? "Not Set"),
+          _infoRow("Pill Name", pillProvider.pillNames[container] ?? "Not Set"),
           const Divider(color: Colors.teal, thickness: 1),
           _infoRow("Pill Quantity Remaining",
-              "${pillProvider.pillCounts[pill] ?? 0} Remaining"),
+              "${pillProvider.pillCounts[container] ?? 0} Remaining"),
           const Divider(color: Colors.teal, thickness: 1),
           _infoRow(
-              "Expiry Date", pillProvider.expiryDates[pill] ?? "DD|MM|YYYY"),
+              "Expiry Date", pillProvider.expiryDates[container] ?? "DD|MM|YYYY"),
+          const Divider(color: Colors.teal, thickness: 1),
+          _infoRow("Dosage & Timings", _getDosageDetails(pillProvider, container)),
         ],
       ),
     );
+  }
+
+  // Get Dosage & Timings as a formatted string
+  String _getDosageDetails(PillProvider pillProvider, String container) {
+    List<String>? dosages = pillProvider.dosageSchedules[container];
+    if (dosages == null || dosages.isEmpty) {
+      return "Not Set";
+    }
+    
+    String formattedDosages = dosages.map((dose) => "• $dose").join("\n");
+    return formattedDosages;
   }
 
   // Non-Editable Text Row
@@ -153,6 +174,7 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
             flex: 2,
