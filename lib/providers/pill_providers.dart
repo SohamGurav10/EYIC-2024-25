@@ -2,34 +2,48 @@ import 'package:flutter/material.dart';
 
 class PillProvider with ChangeNotifier {
   Map<String, String> pillNames = {
-    "Pill A": "Enter Pill Name",
-    "Pill B": "Enter Pill Name",
-    "Pill C": "Enter Pill Name",
+    "Container A": "Enter Pill Name",
+    "Container B": "Enter Pill Name",
+    "Container C": "Enter Pill Name",
   };
 
   Map<String, String> expiryDates = {
-    "Pill A": "DD|MM|YYYY",
-    "Pill B": "DD|MM|YYYY",
-    "Pill C": "DD|MM|YYYY",
+    "Container A": "DD|MM|YYYY",
+    "Container B": "DD|MM|YYYY",
+    "Container C": "DD|MM|YYYY",
   };
 
   Map<String, int> pillCounts = {
-    "Pill A": 0,
-    "Pill B": 0,
-    "Pill C": 0,
+    "Container A": 0,
+    "Container B": 0,
+    "Container C": 0,
   };
 
-  void updatePill(String pill, String name, String expiryDate, int count) {
-    pillNames[pill] = name;
-    expiryDates[pill] = expiryDate;
-    pillCounts[pill] = count;
-    notifyListeners(); // Updates UI in listening widgets
+  // New: Dosage and Timings
+  Map<String, List<String>> dosageSchedules = {
+    "Container A": [], 
+    "Container B": [],
+    "Container C": [],
+  };
+
+  // Update pill details
+  void updatePill(String container, String name, String expiryDate, int count) {
+    pillNames[container] = name;
+    expiryDates[container] = expiryDate;
+    pillCounts[container] = count;
+    notifyListeners(); 
   }
 
-  void updatePillCount(String pill, int change) {
-    if (!pillCounts.containsKey(pill)) return; // Ensure pill exists
-    pillCounts[pill] =
-        (pillCounts[pill]! + change).clamp(0, 999); // Prevent negative values
+  // Update pill count safely
+  void updatePillCount(String container, int change) {
+    if (!pillCounts.containsKey(container)) return; 
+    pillCounts[container] =
+        (pillCounts[container]! + change).clamp(0, 999); 
+    notifyListeners();
+  }
+
+  void updateDosageSchedule(String container, List<String> newSchedule) {
+    dosageSchedules[container] = newSchedule;
     notifyListeners();
   }
 }
