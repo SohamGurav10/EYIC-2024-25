@@ -32,11 +32,11 @@ class _AdditionalSettingsPageState extends State<AdditionalSettingsPage> {
     if (result != null && mounted) {
       setState(() {
         pills[pillIndex] = {
-          "name": result["name"],
-          "time": result["time"],
-          "quantity": result["quantity"],
+          "name": result["name"] ?? "Unnamed Pill",
+          "time": result["time"] ?? "08:00 AM",
+          "quantity": result["quantity"] ?? 1,
         };
-        pillIndex++;
+        pillIndex = (pillIndex + 1) % 3; // Ensure it doesn't exceed 3
       });
     }
   }
@@ -51,9 +51,7 @@ class _AdditionalSettingsPageState extends State<AdditionalSettingsPage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.home, color: Colors.black),
-            onPressed: () {
-              Navigator.pop(context);
-            },
+            onPressed: () => Navigator.pop(context),
           ),
         ],
       ),
