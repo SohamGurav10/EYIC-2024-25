@@ -12,7 +12,6 @@ class PillDetailsScreen extends StatefulWidget {
 }
 
 class _PillDetailsScreenState extends State<PillDetailsScreen> {
-
   String selectedContainer = "Container A"; // Default container selection
   @override
   Widget build(BuildContext context) {
@@ -138,11 +137,6 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
         children: [
           _infoRow("Pill Name",
               pillProvider.pillNames[container] ?? "Enter Pill Name"),
-<<<<<<< HEAD
-          _infoRow("Pill Name",
-              pillProvider.pillNames[container] ?? "Enter Pill Name"),
-=======
->>>>>>> main
           const Divider(color: Colors.teal, thickness: 1),
           _infoRow("Pill Quantity Remaining",
               "${pillProvider.pillCounts[container] ?? 0} Remaining"),
@@ -152,14 +146,6 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
           const Divider(color: Colors.teal, thickness: 1),
           _infoRow(
               "Dosage & Timings", _getDosageDetails(pillProvider, container)),
-<<<<<<< HEAD
-          _infoRow("Expiry Date",
-              pillProvider.expiryDates[container] ?? "DD|MM|YYYY"),
-          const Divider(color: Colors.teal, thickness: 1),
-          _infoRow(
-              "Dosage & Timings", _getDosageDetails(pillProvider, container)),
-=======
->>>>>>> main
         ],
       ),
     );
