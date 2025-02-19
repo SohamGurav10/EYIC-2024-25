@@ -16,3 +16,10 @@
 1. Added the add new pill functionality.
 2. Added the amount section for pills to be taken in a day section.
 3. Added the time section in order to undertsand the time of taking pills.
+
+12|02|25
+1. Added the pill history functionality.
+2. Added the pill refill functionality.
+
+18|02|25
+1. Added the pill reminder functionality (alarm fucntionality).
