@@ -12,7 +12,7 @@ class PillDetailsScreen extends StatefulWidget {
 }
 
 class _PillDetailsScreenState extends State<PillDetailsScreen> {
-  String selectedContainer = "Container A"; // Default container selection
+  String selectedContainer = "Container A"; // Default selection
 
   @override
   Widget build(BuildContext context) {
@@ -89,6 +89,7 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
     );
   }
 
+  /// **Button to Switch Between Containers (A, B, C)**
   Widget _containerButton(String container) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -117,6 +118,7 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
     );
   }
 
+  /// **Display Information Based on Selected Container**
   Widget _infoSection(
       BuildContext context, String container, PillProvider pillProvider) {
     return Container(
@@ -136,13 +138,12 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _infoRow("Pill Name", pillProvider.pillNames[container] ?? "Not Set"),
+          _infoRow("Pill Name", pillProvider.pillNames[container] ?? "Enter Pill Name"),
           const Divider(color: Colors.teal, thickness: 1),
           _infoRow("Pill Quantity Remaining",
               "${pillProvider.pillCounts[container] ?? 0} Remaining"),
           const Divider(color: Colors.teal, thickness: 1),
-          _infoRow(
-              "Expiry Date", pillProvider.expiryDates[container] ?? "DD|MM|YYYY"),
+          _infoRow("Expiry Date", pillProvider.expiryDates[container] ?? "DD|MM|YYYY"),
           const Divider(color: Colors.teal, thickness: 1),
           _infoRow("Dosage & Timings", _getDosageDetails(pillProvider, container)),
         ],
@@ -150,6 +151,7 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
     );
   }
 
+  /// **Format Dosage Schedules for Each Container**
   String _getDosageDetails(PillProvider pillProvider, String container) {
     List<String>? dosages = pillProvider.dosageSchedules[container];
     if (dosages == null || dosages.isEmpty) {
@@ -158,6 +160,7 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
     return dosages.map((dose) => "• $dose").join("\n");
   }
 
+  /// **Display Info in Rows**
   Widget _infoRow(String title, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -186,6 +189,7 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
     );
   }
 
+  /// **Action Buttons at the Bottom**
   Widget _actionButton(String text, VoidCallback onPressed) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
