@@ -26,7 +26,10 @@ class _ProfileSidebarState extends State<ProfileSidebar> {
     try {
       User? user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        var userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+        var userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
         if (userDoc.exists) {
           setState(() {
             fullName = "${userDoc['first_name']} ${userDoc['last_name']}";
@@ -70,7 +73,8 @@ class _ProfileSidebarState extends State<ProfileSidebar> {
                 Align(
                   alignment: Alignment.topRight,
                   child: IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white, size: 30),
+                    icon:
+                        const Icon(Icons.close, color: Colors.white, size: 30),
                     onPressed: () {
                       Navigator.of(context).pop();
                     },
@@ -106,13 +110,23 @@ class _ProfileSidebarState extends State<ProfileSidebar> {
 
                 // Buttons
                 _buildSidebarButton(context, "Home", Icons.home, () {
-                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomeScreen()));
+                  Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const HomeScreen()));
                 }),
-                _buildSidebarButton(context, "Pill Details", Icons.medication, () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => const PillDetailsScreen()));
+                _buildSidebarButton(context, "Pill Details", Icons.medication,
+                    () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const PillDetailsPage()));
                 }),
                 _buildSidebarButton(context, "Add Pill", Icons.add, () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => const AddPillPage()));
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const AddPillPage()));
                 }),
                 _buildSidebarButton(context, "Profile", Icons.person, () {
                   // Navigate to Profile Settings Page
@@ -130,7 +144,8 @@ class _ProfileSidebarState extends State<ProfileSidebar> {
     );
   }
 
-  Widget _buildSidebarButton(BuildContext context, String text, IconData icon, VoidCallback onPressed) {
+  Widget _buildSidebarButton(BuildContext context, String text, IconData icon,
+      VoidCallback onPressed) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: ElevatedButton.icon(
