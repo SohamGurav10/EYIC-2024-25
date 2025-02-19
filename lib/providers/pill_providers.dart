@@ -21,7 +21,7 @@ class PillProvider with ChangeNotifier {
 
   // New: Dosage and Timings
   Map<String, List<String>> dosageSchedules = {
-    "Container A": [], 
+    "Container A": [],
     "Container B": [],
     "Container C": [],
   };
@@ -31,14 +31,13 @@ class PillProvider with ChangeNotifier {
     pillNames[container] = name;
     expiryDates[container] = expiryDate;
     pillCounts[container] = count;
-    notifyListeners(); 
+    notifyListeners();
   }
 
   // Update pill count safely
   void updatePillCount(String container, int change) {
-    if (!pillCounts.containsKey(container)) return; 
-    pillCounts[container] =
-        (pillCounts[container]! + change).clamp(0, 999); 
+    if (!pillCounts.containsKey(container)) return;
+    pillCounts[container] = (pillCounts[container]! + change).clamp(0, 999);
     notifyListeners();
   }
 
