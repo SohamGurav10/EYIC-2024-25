@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'profile_sidebar.dart';
 import 'alarm_screen.dart';
+import 'package:intl/intl.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
@@ -16,8 +17,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  String fullName = "User"; // Default name
+  String fullName = "User";
   List<Map<String, dynamic>> pillSchedules = [];
+  List<Map<String, dynamic>> todaysPills = [];
   String alarmStatus = "No alarms";
 
   @override
@@ -31,7 +33,10 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       User? user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        var userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+        var userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
         if (userDoc.exists) {
           setState(() {
             fullName = "${userDoc['first_name']} ${userDoc['last_name']}";
@@ -55,11 +60,20 @@ class _HomeScreenState extends State<HomeScreen> {
 
         setState(() {
           pillSchedules = schedules.docs.map((doc) => doc.data()).toList();
+          filterTodaysPills();
         });
       }
     } catch (e) {
       print("Error fetching pill schedules: $e");
     }
+  }
+
+  void filterTodaysPills() {
+    String today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    setState(() {
+      todaysPills =
+          pillSchedules.where((pill) => pill['date'] == today).toList();
+    });
   }
 
   void _triggerAlarm() {
@@ -134,7 +148,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const SizedBox(height: 10),
+              const SizedBox(height: 15),
               Text(
                 "WELCOME $fullName!",
                 style: const TextStyle(
@@ -143,7 +157,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   letterSpacing: 1.2,
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 25),
               Expanded(child: _buildMainContent()),
             ],
           ),
@@ -156,7 +170,10 @@ class _HomeScreenState extends State<HomeScreen> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
+        _buildPillScheduleTable(),
+        const SizedBox(height: 20),
         _buildInfoBox("Upcoming Alert", alarmStatus),
+        const SizedBox(height: 20),
         _buildAlarmControls(),
       ],
     );
@@ -165,10 +182,18 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildInfoBox(String title, String content) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(15),
+      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 15),
       decoration: BoxDecoration(
-        color: Colors.teal.shade400,
+        color: const Color.fromARGB(255, 255, 255, 255),
         borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -176,18 +201,97 @@ class _HomeScreenState extends State<HomeScreen> {
           Text(
             title,
             style: const TextStyle(
-              fontSize: 16,
+              fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: Colors.black,
             ),
           ),
-          const SizedBox(height: 5),
+          const SizedBox(height: 8),
           Text(
             content,
             style: const TextStyle(
-              fontSize: 14,
-              color: Colors.white,
+              fontSize: 16,
+              color: Colors.black,
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPillScheduleTable() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(255, 255, 255, 255),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            spreadRadius: 3,
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text("Today's Pills",
+              style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black)),
+          const SizedBox(height: 10),
+          Table(
+            border: TableBorder.all(color: Colors.black.withOpacity(0.3)),
+            columnWidths: const {
+              0: FlexColumnWidth(2),
+              1: FlexColumnWidth(1),
+            },
+            children: [
+              const TableRow(
+                children: [
+                  Padding(
+                    padding: EdgeInsets.all(10.0),
+                    child: Text("Pill Name",
+                        style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black)),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.all(10.0),
+                    child: Text("Time",
+                        style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black)),
+                  ),
+                ],
+              ),
+              ...pillSchedules.map((pill) => TableRow(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: Text(
+                          pill['name'] ?? "N/A",
+                          style: const TextStyle(
+                              color: Colors.black, fontSize: 16),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: Text(
+                          pill['time'] ?? "N/A",
+                          style: const TextStyle(
+                              color: Colors.black, fontSize: 16),
+                        ),
+                      ),
+                    ],
+                  )),
+            ],
           ),
         ],
       ),
@@ -200,18 +304,48 @@ class _HomeScreenState extends State<HomeScreen> {
       children: [
         ElevatedButton(
           onPressed: _dismissAlarm,
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-          child: const Text("Dismiss"),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color.fromARGB(255, 0, 124, 201),
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            elevation: 5,
+          ),
+          child: const Text(
+            "Dismiss",
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
         ),
         ElevatedButton(
           onPressed: _snoozeAlarm,
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-          child: const Text("Snooze"),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color.fromARGB(255, 0, 124, 201),
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            elevation: 5,
+          ),
+          child: const Text(
+            "Snooze",
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
         ),
         ElevatedButton(
           onPressed: _triggerAlarm,
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-          child: const Text("Trigger Alarm"),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color.fromARGB(255, 0, 124, 201),
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            elevation: 5,
+          ),
+          child: const Text(
+            "Trigger Alarm",
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
         ),
       ],
     );
