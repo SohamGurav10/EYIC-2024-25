@@ -120,7 +120,7 @@ class _ProfileSidebarState extends State<ProfileSidebar> {
                   Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const PillDetailsPage()));
+                          builder: (context) => const PillDetailsScreen()));
                 }),
                 _buildSidebarButton(context, "Add Pill", Icons.add, () {
                   Navigator.push(

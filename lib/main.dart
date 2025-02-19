@@ -64,7 +64,7 @@ class _MyAppState extends State<MyApp> {
       routes: {
         '/': (context) => const LoginScreen(),
         '/home': (context) => const HomeScreen(),
-        '/pill_details': (context) => const PillDetailsPage(),
+        '/pill_details': (context) => const PillDetailsScreen(),
         '/additional_settings': (context) => const AdditionalSettingsPage(),
         '/signup': (context) => const SignupPage(),
         '/scheduler': (context) => PillScheduler(httpService: httpService),
