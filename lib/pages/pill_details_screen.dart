@@ -1,45 +1,27 @@
 import 'package:flutter/material.dart';
-import 'package:medicine_dispenser/pages/add_new_pill.dart';
 import 'package:medicine_dispenser/pages/pill_reload_page.dart';
+import 'package:medicine_dispenser/pages/additional_settings_page.dart';
+import 'package:provider/provider.dart';
+import 'package:medicine_dispenser/providers/pill_providers.dart';
 
-class PillDetailsPage extends StatefulWidget {
-  const PillDetailsPage({super.key});
+class PillDetailsScreen extends StatefulWidget {
+  const PillDetailsScreen({super.key});
 
   @override
-  _PillDetailsPageState createState() => _PillDetailsPageState();
+  _PillDetailsScreenState createState() => _PillDetailsScreenState();
 }
 
-class _PillDetailsPageState extends State<PillDetailsPage> {
-  List<Map<String, dynamic>> pills = [
-    {"name": "Add Pill", "time": "08:00 AM", "quantity": 1},
-    {"name": "Add Pill", "time": "08:00 AM", "quantity": 1},
-    {"name": "Add Pill", "time": "08:00 AM", "quantity": 1},
+class _PillDetailsScreenState extends State<PillDetailsScreen> {
+  String selectedContainer = "Container A"; // Default container selection
+
+  final List<Map<String, String>> pills = [
+    {"name": "Pill A", "remaining": "10", "container": "A"},
+    {"name": "Pill B", "remaining": "8", "container": "B"},
+    {"name": "Pill C", "remaining": "5", "container": "C"},
   ];
-  int pillIndex = 0;
 
   Future<void> _navigateToAddPill() async {
-    if (pillIndex >= 3) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Maximum 3 pills can be added')),
-      );
-      return;
-    }
-
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const AddPillPage()),
-    );
-
-    if (result != null && mounted) {
-      setState(() {
-        pills[pillIndex] = {
-          "name": result["name"],
-          "time": result["time"],
-          "quantity": result["quantity"],
-        };
-        pillIndex++;
-      });
-    }
+    // Add navigation logic if required
   }
 
   @override
@@ -99,9 +81,9 @@ class _PillDetailsPageState extends State<PillDetailsPage> {
     return Column(
       children: [
         _pillReloadHeader(),
-        _pillRow(pills[0]["name"], "Remaining Qty: 10", "A"),
-        _pillRow(pills[1]["name"], "Remaining Qty: 10", "B"),
-        _pillRow(pills[2]["name"], "Remaining Qty: 10", "C"),
+        for (var pill in pills)
+          _pillRow(pill["name"]!, "Remaining Qty: ${pill["remaining"]}",
+              pill["container"]!),
       ],
     );
   }
