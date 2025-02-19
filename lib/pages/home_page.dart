@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'profile_sidebar.dart';
-// import 'package:medicine_dispenser/pages/additional_settings_page.dart';
+import 'alarm_screen.dart';
+
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+    FlutterLocalNotificationsPlugin();
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -13,11 +17,14 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   String fullName = "User"; // Default name
+  List<Map<String, dynamic>> pillSchedules = [];
+  String alarmStatus = "No alarms";
 
   @override
   void initState() {
     super.initState();
     fetchUserName();
+    fetchPillSchedules();
   }
 
   Future<void> fetchUserName() async {
@@ -34,6 +41,58 @@ class _HomeScreenState extends State<HomeScreen> {
     } catch (e) {
       print("Error fetching user data: $e");
     }
+  }
+
+  Future<void> fetchPillSchedules() async {
+    try {
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        var schedules = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .collection('pill_schedules')
+            .get();
+
+        setState(() {
+          pillSchedules = schedules.docs.map((doc) => doc.data()).toList();
+        });
+      }
+    } catch (e) {
+      print("Error fetching pill schedules: $e");
+    }
+  }
+
+  void _triggerAlarm() {
+    setState(() {
+      alarmStatus = "Upcoming Alarm! Take your medicine";
+    });
+    flutterLocalNotificationsPlugin.show(
+      0,
+      "Pill Reminder",
+      "It's time to take your medicine!",
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'alarm_channel',
+          'Medicine Alarm',
+          channelDescription: 'Reminder for medicine intake',
+          importance: Importance.max,
+          priority: Priority.high,
+          fullScreenIntent: true,
+        ),
+      ),
+    );
+  }
+
+  void _dismissAlarm() {
+    setState(() {
+      alarmStatus = "Alarm dismissed. Pill dispensed.";
+    });
+  }
+
+  void _snoozeAlarm() {
+    setState(() {
+      alarmStatus = "Snoozed for 10 minutes.";
+    });
   }
 
   @override
@@ -82,13 +141,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1.2,
-                  shadows: [
-                    Shadow(
-                      color: Colors.black26,
-                      blurRadius: 2,
-                      offset: Offset(1, 1),
-                    ),
-                  ],
                 ),
               ),
               const SizedBox(height: 20),
@@ -104,10 +156,8 @@ class _HomeScreenState extends State<HomeScreen> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        _buildInfoBox("Upcoming Alert", "Pill Name          Time"),
-        _buildInfoBox("Today's Pills", "Pill Name          Quantity & Timings"),
-        _buildAlarmDetailsBox(),
-        _buildPillDetailsButton(),
+        _buildInfoBox("Upcoming Alert", alarmStatus),
+        _buildAlarmControls(),
       ],
     );
   }
@@ -144,80 +194,26 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildAlarmDetailsBox() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        color: Colors.teal.shade400,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            "Alarm Details",
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          Column(
-            children: [
-              const SizedBox(height: 10),
-              _buildAlarmRow("DISMISSED", "Pill has been dispensed", Colors.orange),
-              _buildAlarmRow("SNOOZED", "Time remaining till 40 min mark", Colors.orange),
-            ],
-          ),
-          const SizedBox(height: 5),
-          const Text(
-            "40 minutes passed since dosage time",
-            style: TextStyle(fontSize: 12, color: Colors.orange),
-          ),
-          const SizedBox(height: 5),
-          const Text(
-            "NOTIFY THE PATIENT IMMEDIATELY",
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.red),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAlarmRow(String title, String description, Color color) {
+  Widget _buildAlarmControls() {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        Text(
-          title,
-          style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: color),
+        ElevatedButton(
+          onPressed: _dismissAlarm,
+          style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+          child: const Text("Dismiss"),
         ),
-        Expanded(
-          child: Text(
-            description,
-            style: const TextStyle(fontSize: 14, color: Colors.white),
-            textAlign: TextAlign.right,
-          ),
+        ElevatedButton(
+          onPressed: _snoozeAlarm,
+          style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+          child: const Text("Snooze"),
+        ),
+        ElevatedButton(
+          onPressed: _triggerAlarm,
+          style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+          child: const Text("Trigger Alarm"),
         ),
       ],
-    );
-  }
-
-  Widget _buildPillDetailsButton() {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.teal.shade600,
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
-        onPressed: () {
-          Navigator.pushNamed(context, '/pill_details');
-        },
-        child: const Text("Pill Details", style: TextStyle(fontSize: 18, color: Colors.white)),
-      ),
     );
   }
 }
