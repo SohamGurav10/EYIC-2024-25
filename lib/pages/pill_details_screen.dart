@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:medicine_dispenser/pages/add_new_pill.dart';
 import 'package:medicine_dispenser/pages/pill_reload_page.dart';
-// import 'package:provider/provider.dart';
-// import 'package:medicine_dispenser/providers/pill_providers.dart';
 
 class PillDetailsPage extends StatefulWidget {
   const PillDetailsPage({super.key});
@@ -73,17 +71,7 @@ class _PillDetailsPageState extends State<PillDetailsPage> {
           padding: const EdgeInsets.all(20),
           child: Column(
             children: [
-              _sectionContainer(
-                title: "PILL RELOAD",
-                child: Column(
-                  children: [
-                    _pillReloadHeader(),
-                    _pillRow(pills[0]["name"], "Remaining Qty: 10", "A"),
-                    _pillRow(pills[1]["name"], "Remaining Qty: 10", "B"),
-                    _pillRow(pills[2]["name"], "Remaining Qty: 10", "C"),
-                  ],
-                ),
-              ),
+              _pillReloadSection(),
               const SizedBox(height: 20),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
@@ -107,42 +95,15 @@ class _PillDetailsPageState extends State<PillDetailsPage> {
     );
   }
 
-  // Pill Information Section (NON-EDITABLE)
-  Widget _infoSection(BuildContext context, String pill) {
-    var pillProvider = Provider.of<PillProvider>(context);
-
-    return Container(
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        color: Colors.teal.shade100,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-            ),
-          ),
-          const SizedBox(height: 10),
-          child,
-        ],
-      ),
+  Widget _pillReloadSection() {
+    return Column(
+      children: [
+        _pillReloadHeader(),
+        _pillRow(pills[0]["name"], "Remaining Qty: 10", "A"),
+        _pillRow(pills[1]["name"], "Remaining Qty: 10", "B"),
+        _pillRow(pills[2]["name"], "Remaining Qty: 10", "C"),
+      ],
     );
-  }
-
-  // Get Dosage & Timings as a formatted string
-  String _getDosageDetails(PillProvider pillProvider, String container) {
-    List<String>? dosages = pillProvider.dosageSchedules[container];
-    if (dosages == null || dosages.isEmpty) {
-      return "Not Set";
-    }
-    
-    String formattedDosages = dosages.map((dose) => "• $dose").join("\n");
-    return formattedDosages;
   }
 
   Widget _pillReloadHeader() {
