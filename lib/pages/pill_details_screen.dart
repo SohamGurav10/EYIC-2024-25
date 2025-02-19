@@ -12,6 +12,7 @@ class PillDetailsScreen extends StatefulWidget {
 }
 
 class _PillDetailsScreenState extends State<PillDetailsScreen> {
+
   String selectedContainer = "Container A"; // Default container selection
   @override
   Widget build(BuildContext context) {
