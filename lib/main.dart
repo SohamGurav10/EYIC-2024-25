@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'firebase_options.dart';
 import 'package:medicine_dispenser/pages/login_screen.dart';
 import 'package:medicine_dispenser/pages/home_page.dart';
@@ -26,6 +28,9 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
+  // Call getToken() to retrieve FCM token
+  getToken();
+
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   runApp(
@@ -36,6 +41,11 @@ void main() async {
       child: const MyApp(),
     ),
   );
+}
+
+Future<void> getToken() async {
+  String? token = await FirebaseMessaging.instance.getToken();
+  print("FCM Token: $token");
 }
 
 class MyApp extends StatefulWidget {
@@ -77,7 +87,8 @@ class _MyAppState extends State<MyApp> {
 
   void _configureFirebaseListeners() {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      showFullScreenAlarm(message.notification?.title, message.notification?.body);
+      showFullScreenAlarm(
+          message.notification?.title, message.notification?.body);
     });
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
