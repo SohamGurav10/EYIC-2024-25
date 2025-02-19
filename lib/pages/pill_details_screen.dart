@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:medicine_dispenser/pages/add_new_pill.dart';
 import 'package:medicine_dispenser/pages/pill_reload_page.dart';
-import 'package:medicine_dispenser/pages/additional_settings_page.dart';
-import 'package:provider/provider.dart';
-import 'package:medicine_dispenser/providers/pill_providers.dart';
+// import 'package:provider/provider.dart';
+// import 'package:medicine_dispenser/providers/pill_providers.dart';
 
 class PillDetailsPage extends StatefulWidget {
   const PillDetailsPage({super.key});

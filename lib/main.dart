@@ -37,20 +37,20 @@ class _MyAppState extends State<MyApp> {
   String selectedPill = "Pill A";
   TimeOfDay selectedTime = TimeOfDay.now();
 
-  Future<void> _selectTime(BuildContext context) async {
-    final TimeOfDay? picked = await showTimePicker(
-      context: context,
-      initialTime: selectedTime,
-    );
-    if (picked != null && picked != selectedTime) {
-      setState(() {
-        selectedTime = picked;
-        // Automatically send update when time is picked
-        httpService.sendSchedule(
-            selectedPill, selectedTime.hour, selectedTime.minute);
-      });
-    }
-  }
+  // Future<void> _selectTime(BuildContext context) async {
+  //   final TimeOfDay? picked = await showTimePicker(
+  //     context: context,
+  //     initialTime: selectedTime,
+  //   );
+  //   if (picked != null && picked != selectedTime) {
+  //     setState(() {
+  //       selectedTime = picked;
+  //       // Automatically send update when time is picked
+  //       httpService.sendSchedule(
+  //           selectedPill, selectedTime.hour, selectedTime.minute);
+  //     });
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
