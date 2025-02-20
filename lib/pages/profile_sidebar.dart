@@ -32,7 +32,7 @@ class _ProfileSidebarState extends State<ProfileSidebar> {
             .get();
         if (userDoc.exists) {
           setState(() {
-            fullName = "${userDoc['first_name']} ${userDoc['last_name']}";
+            fullName = "${userDoc['firstName']} ${userDoc['lastName']}";
           });
         }
       }

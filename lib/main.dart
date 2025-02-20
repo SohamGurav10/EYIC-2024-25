@@ -3,26 +3,23 @@ import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'firebase_options.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-
 import 'package:medicine_dispenser/pages/login_screen.dart';
 import 'package:medicine_dispenser/pages/home_screen.dart';
 import 'package:medicine_dispenser/pages/pill_details_screen.dart';
 import 'package:medicine_dispenser/pages/additional_settings_page.dart';
 import 'package:medicine_dispenser/pages/signup_screen.dart';
+import 'package:medicine_dispenser/pages/alarm_screen.dart';
 import 'package:medicine_dispenser/providers/pill_providers.dart';
 import 'package:medicine_dispenser/services/http_service.dart';
-import 'package:medicine_dispenser/pages/alarm_screen.dart';
+import 'firebase_options.dart';
 
-// Initialize local notifications
+// Initialize Local Notifications
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
 
-// Background notification handler
+// Background Notification Handler
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   showFullScreenAlarm(message.notification?.title, message.notification?.body);
 }
 
@@ -30,22 +27,10 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  void getToken() async {
-    String? token = await FirebaseMessaging.instance.getToken();
-    print("FCM Token: $token");
-  }
+  FirebaseMessaging messaging = FirebaseMessaging.instance;
+  await messaging.requestPermission();
 
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-  FirebaseMessaging messaging = FirebaseMessaging.instance;
-  NotificationSettings settings = await messaging.requestPermission();
-
-  if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-    print('User granted permission');
-  }
-
-  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-    print('Message received: ${message.notification?.title}');
-  });
 
   runApp(
     MultiProvider(
@@ -75,6 +60,11 @@ class _MyAppState extends State<MyApp> {
     getToken();
   }
 
+  Future<void> getToken() async {
+    String? token = await FirebaseMessaging.instance.getToken();
+    print("FCM Token: $token");
+  }
+
   void _initializeNotifications() {
     const AndroidInitializationSettings androidInitializationSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -97,7 +87,8 @@ class _MyAppState extends State<MyApp> {
 
   void _configureFirebaseListeners() {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      showFullScreenAlarm(message.notification?.title, message.notification?.body);
+      showFullScreenAlarm(
+          message.notification?.title, message.notification?.body);
     });
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
@@ -113,9 +104,7 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Medicine Dispenser',
-      theme: ThemeData(
-        primarySwatch: Colors.teal,
-      ),
+      theme: ThemeData(primarySwatch: Colors.teal),
       initialRoute: '/',
       routes: {
         '/': (context) => const LoginScreen(),
@@ -130,7 +119,7 @@ class _MyAppState extends State<MyApp> {
   }
 }
 
-// Function to show the full-screen alarm
+// Function to Show Full-Screen Alarm
 void showFullScreenAlarm(String? title, String? body) {
   const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
     'alarm_channel',
