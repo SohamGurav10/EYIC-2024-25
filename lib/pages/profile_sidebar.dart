@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:medicine_dispenser/pages/home_page.dart';
+import 'package:medicine_dispenser/pages/home_screen.dart';
 import 'package:medicine_dispenser/pages/pill_details_screen.dart';
 import 'package:medicine_dispenser/pages/add_new_pill.dart';
 import 'package:medicine_dispenser/pages/login_screen.dart';

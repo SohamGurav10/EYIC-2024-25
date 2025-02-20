@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:medicine_dispenser/pages/home_page.dart';
+import 'package:medicine_dispenser/pages/home_screen.dart';
 import 'package:medicine_dispenser/pages/phone_auth_screen.dart';
 import 'package:medicine_dispenser/pages/signup_screen.dart';
 import 'package:medicine_dispenser/services/auth_service.dart';

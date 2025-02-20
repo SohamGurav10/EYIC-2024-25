@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'profile_sidebar.dart';
-import 'alarm_screen.dart';
+// import 'alarm_screen.dart';
 import 'package:intl/intl.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -33,20 +33,35 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       User? user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        var userDoc = await FirebaseFirestore.instance
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance
             .collection('users')
             .doc(user.uid)
             .get();
-        if (userDoc.exists) {
+
+        if (userDoc.exists && userDoc.data() != null) {
+          var data = userDoc.data() as Map<String, dynamic>;
+          print("Fetched user data: $data"); // Debugging
+
+          // Use the correct field names from Firestore
+          String firstName = data['firstName'] ?? "User"; 
+          String lastName = data['lastName'] ?? "";
+
           setState(() {
-            fullName = "${userDoc['first_name']} ${userDoc['last_name']}";
+            fullName = "$firstName $lastName";
           });
+
+          print("Updated fullName: $fullName"); // Debugging
+        } else {
+          print("User document does not exist or is empty.");
         }
       }
     } catch (e) {
       print("Error fetching user data: $e");
     }
   }
+
+
+
 
   Future<void> fetchPillSchedules() async {
     try {

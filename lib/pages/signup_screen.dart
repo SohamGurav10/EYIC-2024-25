@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:medicine_dispenser/pages/home_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:medicine_dispenser/pages/home_screen.dart';
 import 'package:medicine_dispenser/pages/login_screen.dart';
-import 'package:medicine_dispenser/services/signup_auth_service.dart';
 
 class SignupPage extends StatefulWidget {
   const SignupPage({super.key});
@@ -17,7 +18,6 @@ class _SignupPageState extends State<SignupPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final AuthService _authService = AuthService();
 
   bool isLoading = false;
   bool _obscurePassword = true;
@@ -29,26 +29,32 @@ class _SignupPageState extends State<SignupPage> {
 
     setState(() => isLoading = true);
 
-    final String? error = await _authService.signUpUser(
-      firstNameController.text.trim(),
-      lastNameController.text.trim(),
-      emailController.text.trim(),
-      phoneController.text.trim(),
-      passwordController.text.trim(),
-    );
+    try {
+      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+      );
 
-    if (error == null) {
+      String userId = userCredential.user!.uid;
+
+      await FirebaseFirestore.instance.collection('users').doc(userId).set({
+        'firstName': firstNameController.text.trim(),
+        'lastName': lastNameController.text.trim(),
+        'email': emailController.text.trim(),
+        'phone': phoneController.text.trim(),
+      });
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Account created! Please verify your email.")),
+        const SnackBar(content: Text("Account created successfully!")),
       );
 
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const HomeScreen()),
       );
-    } else {
+    } catch (e) {
       setState(() {
-        errorMessage = error;
+        errorMessage = e.toString();
         isLoading = false;
       });
     }
@@ -59,7 +65,7 @@ class _SignupPageState extends State<SignupPage> {
     return Scaffold(
       body: Container(
         width: double.infinity,
-        height: double.infinity, // Ensures full screen
+        height: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [Color(0xFFA6E3E9), Color(0xFF71C9CE)],
@@ -70,21 +76,14 @@ class _SignupPageState extends State<SignupPage> {
         child: Column(
           children: [
             const SizedBox(height: 60),
-
-            // 🔹 Logo & App Name
             const CircleAvatar(
               radius: 50,
               backgroundColor: Colors.white,
               backgroundImage: AssetImage("assets/logo.png"),
             ),
             const SizedBox(height: 10),
-            const Text(
-              "MediMate",
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black),
-            ),
+            const Text("MediMate", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black)),
             const SizedBox(height: 10),
-
-            // 🔹 Form Section (Expanded to fill space)
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(20),
@@ -97,20 +96,12 @@ class _SignupPageState extends State<SignupPage> {
                       _buildEmailField(),
                       _buildTextField(phoneController, "Phone Number", "Enter your phone number", keyboardType: TextInputType.phone),
                       _buildPasswordField(),
-
                       const SizedBox(height: 10),
-
-                      // 🔹 Error Message
                       if (errorMessage != null)
                         Padding(
                           padding: const EdgeInsets.only(bottom: 10),
-                          child: Text(
-                            errorMessage!,
-                            style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
-                          ),
+                          child: Text(errorMessage!, style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
                         ),
-
-                      // 🔹 Sign Up Button
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue,
@@ -118,25 +109,14 @@ class _SignupPageState extends State<SignupPage> {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         ),
                         onPressed: isLoading ? null : signUp,
-                        child: isLoading
-                            ? const CircularProgressIndicator(color: Colors.white)
-                            : const Text("Sign Up", style: TextStyle(fontSize: 16, color: Colors.white)),
+                        child: isLoading ? const CircularProgressIndicator(color: Colors.white) : const Text("Sign Up", style: TextStyle(fontSize: 16, color: Colors.white)),
                       ),
-
                       const SizedBox(height: 10),
-
-                      // 🔹 Sign-in Instead Button
                       TextButton(
                         onPressed: () {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (context) => const LoginScreen()),
-                          );
+                          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LoginScreen()));
                         },
-                        child: const Text(
-                          "Already have an account? Sign in instead",
-                          style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
-                        ),
+                        child: const Text("Already have an account? Sign in instead", style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
@@ -149,7 +129,6 @@ class _SignupPageState extends State<SignupPage> {
     );
   }
 
-  // 🔹 Build Text Input Fields with Validation
   Widget _buildTextField(TextEditingController controller, String label, String errorMessage, {TextInputType keyboardType = TextInputType.text}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
@@ -172,33 +151,10 @@ class _SignupPageState extends State<SignupPage> {
     );
   }
 
-  // 🔹 Email Input Field with Validation
   Widget _buildEmailField() {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: TextFormField(
-        controller: emailController,
-        keyboardType: TextInputType.emailAddress,
-        decoration: InputDecoration(
-          filled: true,
-          fillColor: Colors.white,
-          hintText: "Email",
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
-        ),
-        validator: (value) {
-          if (value == null || value.trim().isEmpty) {
-            return "Enter your email";
-          }
-          if (!RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$").hasMatch(value)) {
-            return "Enter a valid email address";
-          }
-          return null;
-        },
-      ),
-    );
+    return _buildTextField(emailController, "Email", "Enter your email", keyboardType: TextInputType.emailAddress);
   }
 
-  // 🔹 Password Field with Toggle Visibility
   Widget _buildPasswordField() {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
