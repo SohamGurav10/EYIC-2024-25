@@ -4,8 +4,10 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import 'firebase_options.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+
 import 'package:medicine_dispenser/pages/login_screen.dart';
 import 'package:medicine_dispenser/pages/home_page.dart';
 import 'package:medicine_dispenser/pages/pill_details_screen.dart';
@@ -28,10 +30,22 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // Call getToken() to retrieve FCM token
-  getToken();
+  void getToken() async {
+    String? token = await FirebaseMessaging.instance.getToken();
+    print("FCM Token: $token");
+  }
 
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  FirebaseMessaging messaging = FirebaseMessaging.instance;
+  NotificationSettings settings = await messaging.requestPermission();
+
+  if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+    print('User granted permission');
+  }
+
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    print('Message received: ${message.notification?.title}');
+  });
 
   runApp(
     MultiProvider(
@@ -63,6 +77,7 @@ class _MyAppState extends State<MyApp> {
     super.initState();
     _initializeNotifications();
     _configureFirebaseListeners();
+    getToken();
   }
 
   void _initializeNotifications() {
