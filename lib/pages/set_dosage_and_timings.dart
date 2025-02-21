@@ -15,28 +15,63 @@ class SetDosageAndTimings extends StatefulWidget {
 
 class _SetDosageAndTimingsState extends State<SetDosageAndTimings> {
   int dosageCount = 0;
-  DateTime selectedTime = DateTime(0, 0, 0, 0, 0);
+  DateTime selectedTime = DateTime.now();
   List<String> selectedDays = [];
   final User? user = FirebaseAuth.instance.currentUser;
 
   void saveDosageToFirestore() async {
-    if (user != null) {
-      FirebaseFirestore.instance.collection('users').doc(user!.uid).collection('dosages').add({
+    final User? user = FirebaseAuth.instance.currentUser;
+
+    // Check if user is authenticated
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("You must be logged in to save data."))
+      );
+      return; // Stop execution if the user is not logged in
+    }
+
+    try {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('dosages')
+          .add({
         'dosage': dosageCount,
         'time': "${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}",
         'repeatDays': selectedDays,
-        'alarmName': "Pills Have been Dispensed, Take the Pill!"
+        'alarmName': "Pills have been dispensed, take the pill!"
       });
+
+      // Optional API call
+      widget.httpService.sendSchedule("Pill", selectedTime.hour, selectedTime.minute);
+
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Dosage saved successfully!"))
+      );
+
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error saving data: $e"))
+      );
     }
-    
-    // Example API call using httpService (optional, adapt as needed)
-    widget.httpService.sendSchedule("Pill", selectedTime.hour, selectedTime.minute);
+  }
+
+
+  void discardInputs() {
+    setState(() {
+      dosageCount = 0;
+      selectedTime = DateTime.now();
+      selectedDays.clear();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text("Set New Dosage and Timings", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+      backgroundColor: Colors.teal.shade50,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      title: const Text("Set New Dosage & Timings", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.teal)),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -44,7 +79,7 @@ class _SetDosageAndTimingsState extends State<SetDosageAndTimings> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text("Enter Dosage:", style: TextStyle(fontSize: 18)),
+              const Text("Enter Dosage:", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.teal)),
               Row(
                 children: [
                   IconButton(
@@ -55,7 +90,7 @@ class _SetDosageAndTimingsState extends State<SetDosageAndTimings> {
                       });
                     },
                   ),
-                  Text("$dosageCount", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  Text("$dosageCount", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black)),
                   IconButton(
                     icon: const Icon(Icons.add_circle, color: Colors.green),
                     onPressed: () {
@@ -68,15 +103,14 @@ class _SetDosageAndTimingsState extends State<SetDosageAndTimings> {
               ),
             ],
           ),
-
           const SizedBox(height: 20),
 
           // Time Picker
-          const Text("Select Time:", style: TextStyle(fontSize: 18)),
+          const Text("Select Time:", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.teal)),
           TimePickerSpinner(
             is24HourMode: true,
             normalTextStyle: const TextStyle(fontSize: 16, color: Colors.grey),
-            highlightedTextStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            highlightedTextStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.teal),
             spacing: 40,
             itemHeight: 40,
             isForce2Digits: true,
@@ -90,7 +124,7 @@ class _SetDosageAndTimingsState extends State<SetDosageAndTimings> {
           const SizedBox(height: 20),
 
           // Repeat Dosage Selection
-          const Text("Repeat Dosage:", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const Text("Repeat Dosage:", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.teal)),
           Wrap(
             spacing: 8,
             children: [
@@ -99,6 +133,8 @@ class _SetDosageAndTimingsState extends State<SetDosageAndTimings> {
               return ChoiceChip(
                 label: Text(day),
                 selected: selectedDays.contains(day),
+                selectedColor: Colors.teal.shade300,
+                backgroundColor: Colors.teal.shade100,
                 onSelected: (selected) {
                   setState(() {
                     selected ? selectedDays.add(day) : selectedDays.remove(day);
@@ -112,16 +148,20 @@ class _SetDosageAndTimingsState extends State<SetDosageAndTimings> {
       actions: [
         TextButton(
           onPressed: () {
+            discardInputs();
             Navigator.pop(context); // Close the dialog without saving
           },
-          child: const Text("Cancel", style: TextStyle(color: Colors.red)),
+          child: const Text("Cancel", style: TextStyle(color: Colors.teal, fontWeight: FontWeight.bold)),
         ),
         ElevatedButton(
           onPressed: () {
             saveDosageToFirestore();
-            Navigator.pop(context, [dosageCount, selectedTime, selectedDays]); // Return data
+            if (mounted) {
+              Navigator.pop(context, [dosageCount, selectedTime, selectedDays]);
+            }
           },
-          child: const Text("Done"),
+          style: ElevatedButton.styleFrom(backgroundColor: Colors.teal.shade400),
+          child: const Text("Done", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         ),
       ],
     );
