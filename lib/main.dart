@@ -9,6 +9,8 @@ import 'package:medicine_dispenser/pages/pill_details_screen.dart';
 import 'package:medicine_dispenser/pages/additional_settings_page.dart';
 import 'package:medicine_dispenser/pages/signup_screen.dart';
 import 'package:medicine_dispenser/pages/alarm_screen.dart';
+import 'package:medicine_dispenser/pages/load_new_pills_screen.dart';
+import 'package:medicine_dispenser/pages/set_dosage_and_timings.dart';
 import 'package:medicine_dispenser/providers/pill_providers.dart';
 import 'package:medicine_dispenser/services/http_service.dart';
 import 'firebase_options.dart';
@@ -57,12 +59,12 @@ class _MyAppState extends State<MyApp> {
     super.initState();
     _initializeNotifications();
     _configureFirebaseListeners();
-    getToken();
+    _getToken();
   }
 
-  Future<void> getToken() async {
+  Future<void> _getToken() async {
     String? token = await FirebaseMessaging.instance.getToken();
-    print("FCM Token: $token");
+    debugPrint("FCM Token: $token");
   }
 
   void _initializeNotifications() {
@@ -76,8 +78,7 @@ class _MyAppState extends State<MyApp> {
       initializationSettings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
         if (response.payload == "alarm_screen") {
-          Navigator.push(
-            context,
+          Navigator.of(context).push(
             MaterialPageRoute(builder: (context) => const AlarmScreen()),
           );
         }
@@ -92,8 +93,7 @@ class _MyAppState extends State<MyApp> {
     });
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      Navigator.push(
-        context,
+      Navigator.of(context).push(
         MaterialPageRoute(builder: (context) => const AlarmScreen()),
       );
     });
@@ -105,15 +105,18 @@ class _MyAppState extends State<MyApp> {
       debugShowCheckedModeBanner: false,
       title: 'Medicine Dispenser',
       theme: ThemeData(primarySwatch: Colors.teal),
+      // home: LoadNewPillsScreen(httpService: httpService), // Fixed httpService passing
       initialRoute: '/',
       routes: {
         '/': (context) => const LoginScreen(),
-        '/home': (context) => const HomeScreen(),
+        '/home': (context) => HomeScreen(), // Fixed
         '/pill_details': (context) => const PillDetailsScreen(),
         '/additional_settings': (context) => const AdditionalSettingsPage(),
         '/signup': (context) => const SignupPage(),
         '/alarm': (context) => const AlarmScreen(),
         '/scheduler': (context) => PillScheduler(httpService: httpService),
+        '/load_new_pills': (context) => LoadNewPillsScreen(httpService: httpService), // Fixed
+        '/setDosageAndTimings': (context) => SetDosageAndTimings(httpService: httpService), // Fixed
       },
     );
   }

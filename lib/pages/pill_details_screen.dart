@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:medicine_dispenser/pages/pill_reload_page.dart';
-import 'package:medicine_dispenser/pages/additional_settings_page.dart';
+import 'package:medicine_dispenser/pages/load_new_pills_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:medicine_dispenser/providers/pill_providers.dart';
+import 'package:medicine_dispenser/services/http_service.dart'; // Import HttpService
 
 class PillDetailsScreen extends StatefulWidget {
   const PillDetailsScreen({super.key});
@@ -12,8 +13,9 @@ class PillDetailsScreen extends StatefulWidget {
 }
 
 class _PillDetailsScreenState extends State<PillDetailsScreen> {
-
   String selectedContainer = "Container A"; // Default container selection
+  final HttpService httpService = HttpService(); // Create an instance of HttpService
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -60,19 +62,18 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
+                      _actionButton("LOAD NEW PILLS", () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => LoadNewPillsScreen(httpService: httpService)), // Pass HttpService
+                        );
+                      }),
                       _actionButton("RELOAD PILLS", () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
                               builder: (context) => const PillReloadPage()),
-                        );
-                      }),
-                      _actionButton("ADDITIONAL SETTINGS", () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) =>
-                                  const AdditionalSettingsPage()),
                         );
                       }),
                       _actionButton("CLOSE", () {
