@@ -22,12 +22,11 @@ class _SetDosageAndTimingsState extends State<SetDosageAndTimings> {
   void saveDosageToFirestore() async {
     final User? user = FirebaseAuth.instance.currentUser;
 
-    // Check if user is authenticated
     if (user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("You must be logged in to save data."))
+        const SnackBar(content: Text("You must be logged in to save data.")),
       );
-      return; // Stop execution if the user is not logged in
+      return;
     }
 
     try {
@@ -42,21 +41,18 @@ class _SetDosageAndTimingsState extends State<SetDosageAndTimings> {
         'alarmName': "Pills have been dispensed, take the pill!"
       });
 
-      // Optional API call
       widget.httpService.sendSchedule("Pill", selectedTime.hour, selectedTime.minute);
 
-      // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Dosage saved successfully!"))
+        const SnackBar(content: Text("Dosage saved successfully!")),
       );
 
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error saving data: $e"))
+        SnackBar(content: Text("Error saving data: $e")),
       );
     }
   }
-
 
   void discardInputs() {
     setState(() {
@@ -71,85 +67,46 @@ class _SetDosageAndTimingsState extends State<SetDosageAndTimings> {
     return AlertDialog(
       backgroundColor: Colors.teal.shade50,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      title: const Text("Set New Dosage & Timings", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.teal)),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Dosage Counter
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text("Enter Dosage:", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.teal)),
-              Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.remove_circle, color: Colors.red),
-                    onPressed: () {
-                      setState(() {
-                        if (dosageCount > 0) dosageCount--;
-                      });
-                    },
-                  ),
-                  Text("$dosageCount", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black)),
-                  IconButton(
-                    icon: const Icon(Icons.add_circle, color: Colors.green),
-                    onPressed: () {
-                      setState(() {
-                        dosageCount++;
-                      });
-                    },
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
+      title: const Text(
+        "Set New Dosage & Timings",
+        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.teal),
+        textAlign: TextAlign.center,
+      ),
+      content: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 5.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 10),
 
-          // Time Picker
-          const Text("Select Time:", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.teal)),
-          TimePickerSpinner(
-            is24HourMode: true,
-            normalTextStyle: const TextStyle(fontSize: 16, color: Colors.grey),
-            highlightedTextStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.teal),
-            spacing: 40,
-            itemHeight: 40,
-            isForce2Digits: true,
-            onTimeChange: (time) {
-              setState(() {
-                selectedTime = time;
-              });
-            },
-          ),
+            // Dosage Counter
+            _buildSectionTitle("Enter Dosage:"),
+            const SizedBox(height: 10),
+            _buildDosageCounter(),
 
-          const SizedBox(height: 20),
+            const SizedBox(height: 20),
 
-          // Repeat Dosage Selection
-          const Text("Repeat Dosage:", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.teal)),
-          Wrap(
-            spacing: 8,
-            children: [
-              "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
-            ].map((day) {
-              return ChoiceChip(
-                label: Text(day),
-                selected: selectedDays.contains(day),
-                selectedColor: Colors.teal.shade300,
-                backgroundColor: Colors.teal.shade100,
-                onSelected: (selected) {
-                  setState(() {
-                    selected ? selectedDays.add(day) : selectedDays.remove(day);
-                  });
-                },
-              );
-            }).toList(),
-          ),
-        ],
+            // Time Picker
+            _buildSectionTitle("Select Time:"),
+            const SizedBox(height: 10),
+            _buildTimePicker(),
+
+            const SizedBox(height: 20),
+
+            // Repeat Dosage Selection
+            _buildSectionTitle("Repeat Dosage:"),
+            const SizedBox(height: 10),
+            _buildDaySelection(),
+
+            const SizedBox(height: 10),
+          ],
+        ),
       ),
       actions: [
         TextButton(
           onPressed: () {
             discardInputs();
-            Navigator.pop(context); // Close the dialog without saving
+            Navigator.pop(context);
           },
           child: const Text("Cancel", style: TextStyle(color: Colors.teal, fontWeight: FontWeight.bold)),
         ),
@@ -164,6 +121,91 @@ class _SetDosageAndTimingsState extends State<SetDosageAndTimings> {
           child: const Text("Done", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         ),
       ],
+    );
+  }
+
+  Widget _buildSectionTitle(String text) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Text(
+        text,
+        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.teal),
+      ),
+    );
+  }
+
+  Widget _buildDosageCounter() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        IconButton(
+          icon: const Icon(Icons.remove_circle, color: Colors.red),
+          onPressed: () {
+            setState(() {
+              if (dosageCount > 0) dosageCount--;
+            });
+          },
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: Colors.teal, width: 1),
+          ),
+          child: Text(
+            "$dosageCount",
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
+          ),
+        ),
+        IconButton(
+          icon: const Icon(Icons.add_circle, color: Colors.green),
+          onPressed: () {
+            setState(() {
+              dosageCount++;
+            });
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTimePicker() {
+    return TimePickerSpinner(
+      is24HourMode: true,
+      normalTextStyle: const TextStyle(fontSize: 16, color: Colors.grey),
+      highlightedTextStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.teal),
+      spacing: 50,
+      itemHeight: 45,
+      isForce2Digits: true,
+      onTimeChange: (time) {
+        setState(() {
+          selectedTime = time;
+        });
+      },
+    );
+  }
+
+  Widget _buildDaySelection() {
+    return Wrap(
+      alignment: WrapAlignment.center,
+      spacing: 10,
+      runSpacing: 8,
+      children: [
+        "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
+      ].map((day) {
+        return ChoiceChip(
+          label: Text(day, style: const TextStyle(fontSize: 16)),
+          selected: selectedDays.contains(day),
+          selectedColor: Colors.teal.shade300,
+          backgroundColor: Colors.teal.shade100,
+          onSelected: (selected) {
+            setState(() {
+              selected ? selectedDays.add(day) : selectedDays.remove(day);
+            });
+          },
+        );
+      }).toList(),
     );
   }
 }
