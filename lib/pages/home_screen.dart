@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'pill_details_screen.dart';
 import 'profile_sidebar.dart';
 // import 'alarm_screen.dart';
 import 'package:intl/intl.dart';
@@ -190,6 +191,8 @@ class _HomeScreenState extends State<HomeScreen> {
         _buildInfoBox("Upcoming Alert", alarmStatus),
         const SizedBox(height: 20),
         _buildAlarmControls(),
+        const SizedBox(height: 20), 
+        _buildPillDetailsButton(),  
       ],
     );
   }
@@ -363,6 +366,44 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ],
+    );
+  }
+  Widget _buildPillDetailsButton() {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const PillDetailsScreen()),
+        );
+      },
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 15),
+        margin: const EdgeInsets.all(15),
+        decoration: BoxDecoration(
+          color: Colors.teal, // Button color
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              spreadRadius: 2,
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: const Center(
+          child: Text(
+            "PILL DETAILS",
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              letterSpacing: 1.2,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
