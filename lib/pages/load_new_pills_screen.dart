@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:medicine_dispenser/pages/home_screen.dart';
-// import 'package:medicine_dispenser/pages/pill_details_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
+import 'package:medicine_dispenser/pages/pill_details_screen.dart';
 import 'package:medicine_dispenser/pages/set_dosage_and_timings.dart';
 import 'package:medicine_dispenser/services/http_service.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:intl/intl.dart';
 
 class LoadNewPillsScreen extends StatefulWidget {
   final HttpService httpService;
@@ -22,8 +22,49 @@ class _LoadNewPillsScreenState extends State<LoadNewPillsScreen> {
   String pillExpiryDate = "";
   List<String> dosageTimings = [];
   final User? user = FirebaseAuth.instance.currentUser;
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
+  bool isLoading = false;
+  bool containerHasData = false;
 
-  bool canLoadPill() {
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  Future<void> loadPillData(String container) async {
+    if (user == null) return;
+
+    setState(() => isLoading = true);
+
+    DocumentSnapshot doc = await firestore
+        .collection('users')
+        .doc(user!.uid)
+        .collection('pills')
+        .doc(container)
+        .get();
+
+    if (doc.exists) {
+      setState(() {
+        pillName = doc['pillName'];
+        pillQuantity = doc['pillQuantity'];
+        pillExpiryDate = doc['expiryDate'];
+        dosageTimings = List<String>.from(doc['dosageTimings']);
+        containerHasData = true;
+      });
+    } else {
+      setState(() {
+        pillName = "";
+        pillQuantity = "";
+        pillExpiryDate = "";
+        dosageTimings = [];
+        containerHasData = false;
+      });
+    }
+
+    setState(() => isLoading = false);
+  }
+
+  bool canSavePill() {
     return selectedContainer != null &&
         pillName.isNotEmpty &&
         pillQuantity.isNotEmpty &&
@@ -45,28 +86,34 @@ class _LoadNewPillsScreenState extends State<LoadNewPillsScreen> {
     }
   }
 
-  void loadPill() async {
-    if (canLoadPill() && user != null) {
-      try {
-        await widget.httpService.sendLoadPillCommand(
-          user!.uid, selectedContainer!, pillName, pillQuantity, pillExpiryDate, dosageTimings);
+  void savePill() async {
+    if (!canSavePill() || user == null) return;
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Pill successfully loaded!")),
-        );
+    setState(() => isLoading = true);
 
-        setState(() {
-          selectedContainer = null;
-          pillName = "";
-          pillQuantity = "";
-          pillExpiryDate = "";
-          dosageTimings = [];
-        });
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error loading pill: $e")),
-        );
-      }
+    try {
+      await firestore
+          .collection('users')
+          .doc(user!.uid)
+          .collection('pills')
+          .doc(selectedContainer!)
+          .set({
+        'pillName': pillName,
+        'pillQuantity': pillQuantity,
+        'expiryDate': pillExpiryDate,
+        'dosageTimings': dosageTimings,
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Pill successfully saved!")),
+      );
+
+      setState(() => isLoading = false);
+    } catch (e) {
+      setState(() => isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error saving pill: $e")),
+      );
     }
   }
 
@@ -85,91 +132,103 @@ class _LoadNewPillsScreenState extends State<LoadNewPillsScreen> {
     }
   }
 
+  void removeDosage(String timing) {
+    setState(() {
+      dosageTimings.remove(timing);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, size: 30, color: Colors.white),
-          onPressed: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const HomeScreen()),
-            );
-          },
-        ),
         title: const Text("Load New Pills", style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.teal,
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.close, size: 30, color: Colors.white),
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const PillDetailsScreen()),
+              );
+            },
+          ),
+        ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text("Select a Container", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: ["A", "B", "C"].map((container) {
-                return ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: selectedContainer == container ? Colors.teal[700] : Colors.teal[300],
-                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text("Select a Container", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 15),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: ["A", "B", "C"].map((container) {
+                      return ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: selectedContainer == container ? Colors.teal[700] : Colors.teal[300],
+                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            selectedContainer = container;
+                          });
+                          loadPillData(container);
+                        },
+                        child: Text("Container $container", style: const TextStyle(fontSize: 18, color: Colors.white)),
+                      );
+                    }).toList(),
                   ),
-                  onPressed: () {
-                    setState(() {
-                      selectedContainer = container;
-                    });
-                  },
-                  child: Text("Container $container", style: const TextStyle(fontSize: 18, color: Colors.white)),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 30),
+                  const SizedBox(height: 30),
 
-            if (selectedContainer != null) ...[
-              _buildInputField("Pill Name", (value) => setState(() => pillName = value)),
-              _buildInputField("Pill Quantity", (value) => setState(() => pillQuantity = value), isNumeric: true),
-              _buildDateSelector(),
-              const SizedBox(height: 20),
+                  if (selectedContainer != null)
+                    containerHasData
+                        ? _buildPillDetails()
+                        : _buildPillInputFields(),
 
-              const Text("Dosage & Timings", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              dosageTimings.isEmpty
-                  ? ElevatedButton(
-                      onPressed: openSetDosagePopup,
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.teal),
-                      child: const Text("Add Dosage & Timings", style: TextStyle(color: Colors.white)),
-                    )
-                  : Column(
-                      children: dosageTimings
-                          .map((timing) => ListTile(
-                                title: Text(timing),
-                                trailing: IconButton(
-                                  icon: const Icon(Icons.delete, color: Colors.red),
-                                  onPressed: () {
-                                    setState(() {
-                                      dosageTimings.remove(timing);
-                                    });
-                                  },
-                                ),
-                              ))
-                          .toList(),
-                    ),
-              const SizedBox(height: 20),
-
-              ElevatedButton(
-                onPressed: canLoadPill() ? loadPill : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: canLoadPill() ? Colors.teal : Colors.grey,
-                  padding: const EdgeInsets.symmetric(vertical: 15),
-                ),
-                child: const Center(child: Text("Load New Pill", style: TextStyle(fontSize: 18, color: Colors.white))),
+                  const SizedBox(height: 20),
+                ],
               ),
-            ],
-          ],
+            ),
+    );
+  }
+
+  Widget _buildPillDetails() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text("Pill Name: $pillName"),
+        Text("Quantity: $pillQuantity"),
+        Text("Expiry Date: $pillExpiryDate"),
+        const SizedBox(height: 10),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 50)),
+          onPressed: () => setState(() => containerHasData = false),
+          child: const Text("CHANGE PILLS"),
         ),
-      ),
+      ],
+    );
+  }
+
+  Widget _buildPillInputFields() {
+    return Column(
+      children: [
+        _buildInputField("Pill Name", (value) => setState(() => pillName = value)),
+        _buildInputField("Pill Quantity", (value) => setState(() => pillQuantity = value), isNumeric: true),
+        _buildDateInputField(),
+        _buildDosageTimings(),
+        const SizedBox(height: 20),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 50)),
+          onPressed: canSavePill() ? savePill : null,
+          child: const Text("LOAD PILLS"),
+        ),
+      ],
     );
   }
 
@@ -180,8 +239,6 @@ class _LoadNewPillsScreenState extends State<LoadNewPillsScreen> {
         decoration: InputDecoration(
           labelText: label,
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-          filled: true,
-          fillColor: Colors.grey[100],
         ),
         keyboardType: isNumeric ? TextInputType.number : TextInputType.text,
         onChanged: onChanged,
@@ -189,12 +246,25 @@ class _LoadNewPillsScreenState extends State<LoadNewPillsScreen> {
     );
   }
 
-  Widget _buildDateSelector() {
-    return ListTile(
-      title: const Text("Expiry Date"),
-      subtitle: Text(pillExpiryDate.isEmpty ? "Select a date" : pillExpiryDate),
-      trailing: const Icon(Icons.calendar_today, color: Colors.teal),
+  Widget _buildDateInputField() {
+    return GestureDetector(
       onTap: () => _selectDate(context),
+      child: AbsorbPointer(
+        child: _buildInputField("Expiry Date", (_) {}, isNumeric: false),
+      ),
+    );
+  }
+
+  Widget _buildDosageTimings() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text("Dosage & Timings"),
+        ElevatedButton(
+          onPressed: openSetDosagePopup,
+          child: const Text("Set Dosage & Timings"),
+        ),
+      ],
     );
   }
 }
