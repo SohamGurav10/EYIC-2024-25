@@ -141,6 +141,7 @@ class _LoadNewPillsScreenState extends State<LoadNewPillsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.lightBlue[50], // Light sky blue background
       appBar: AppBar(
         title: const Text("Load New Pills", style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.teal,
@@ -221,7 +222,7 @@ class _LoadNewPillsScreenState extends State<LoadNewPillsScreen> {
         _buildInputField("Pill Name", (value) => setState(() => pillName = value)),
         _buildInputField("Pill Quantity", (value) => setState(() => pillQuantity = value), isNumeric: true),
         _buildDateInputField(),
-        _buildDosageTimings(),
+        _buildDosageAndTimings(),
         const SizedBox(height: 20),
         ElevatedButton(
           style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 50)),
@@ -232,13 +233,16 @@ class _LoadNewPillsScreenState extends State<LoadNewPillsScreen> {
     );
   }
 
-  Widget _buildInputField(String label, Function(String) onChanged, {bool isNumeric = false}) {
+  Widget _buildInputField(String label, Function(String) onChanged, {bool isNumeric = false, TextEditingController? controller}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 15),
       child: TextField(
+        controller: controller,
         decoration: InputDecoration(
           labelText: label,
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+          filled: true,
+          fillColor: Colors.white,
         ),
         keyboardType: isNumeric ? TextInputType.number : TextInputType.text,
         onChanged: onChanged,
@@ -247,22 +251,27 @@ class _LoadNewPillsScreenState extends State<LoadNewPillsScreen> {
   }
 
   Widget _buildDateInputField() {
+    TextEditingController dateController = TextEditingController(text: pillExpiryDate);
+
     return GestureDetector(
-      onTap: () => _selectDate(context),
+      onTap: () async {
+        await _selectDate(context);
+        dateController.text = pillExpiryDate;
+      },
       child: AbsorbPointer(
-        child: _buildInputField("Expiry Date", (_) {}, isNumeric: false),
+        child: _buildInputField("Expiry Date", (_) {}, controller: dateController),
       ),
     );
   }
 
-  Widget _buildDosageTimings() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildDosageAndTimings() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        const Text("Dosage & Timings"),
+        const Text("Dosage and Timings:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
         ElevatedButton(
           onPressed: openSetDosagePopup,
-          child: const Text("Set Dosage & Timings"),
+          child: const Text("Add"),
         ),
       ],
     );
