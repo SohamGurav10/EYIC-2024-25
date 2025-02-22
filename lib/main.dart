@@ -10,7 +10,7 @@ import 'package:medicine_dispenser/pages/additional_settings_page.dart';
 import 'package:medicine_dispenser/pages/signup_screen.dart';
 import 'package:medicine_dispenser/pages/alarm_screen.dart';
 import 'package:medicine_dispenser/pages/load_new_pills_screen.dart';
-import 'package:medicine_dispenser/pages/set_dosage_and_timings.dart';
+// import 'package:medicine_dispenser/pages/set_dosage_and_timings.dart';
 import 'package:medicine_dispenser/providers/pill_providers.dart';
 import 'package:medicine_dispenser/services/http_service.dart';
 import 'firebase_options.dart';
@@ -115,8 +115,7 @@ class _MyAppState extends State<MyApp> {
         '/signup': (context) => const SignupPage(),
         '/alarm': (context) => const AlarmScreen(),
         '/scheduler': (context) => PillScheduler(httpService: httpService),
-        '/load_new_pills': (context) => LoadNewPillsScreen(httpService: httpService), // Fixed
-        '/setDosageAndTimings': (context) => SetDosageAndTimings(httpService: httpService), // Fixed
+        '/load_new_pills': (context) => LoadNewPillsScreen(httpService: httpService), 
       },
     );
   }

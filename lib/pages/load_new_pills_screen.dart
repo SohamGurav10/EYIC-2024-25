@@ -32,37 +32,49 @@ class _LoadNewPillsScreenState extends State<LoadNewPillsScreen> {
   }
 
   Future<void> loadPillData(String container) async {
-    if (user == null) return;
+  if (user == null) return;
 
-    setState(() => isLoading = true);
+  setState(() => isLoading = true);
 
-    DocumentSnapshot doc = await firestore
-        .collection('users')
-        .doc(user!.uid)
-        .collection('pills')
-        .doc(container)
-        .get();
+  DocumentSnapshot doc = await firestore
+      .collection('users')
+      .doc(user!.uid)
+      .collection('pills')
+      .doc(container)
+      .get();
 
-    if (doc.exists) {
-      setState(() {
-        pillName = doc['pillName'];
-        pillQuantity = doc['pillQuantity'];
-        pillExpiryDate = doc['expiryDate'];
-        dosageTimings = List<String>.from(doc['dosageTimings']);
-        containerHasData = true;
-      });
-    } else {
-      setState(() {
-        pillName = "";
-        pillQuantity = "";
-        pillExpiryDate = "";
+  if (doc.exists) {
+    setState(() {
+      pillName = doc['pillName'] ?? "";
+      pillQuantity = doc['pillQuantity'] ?? "";
+      pillExpiryDate = doc['expiryDate'] ?? "";
+
+      // ✅ Correctly fetch dosageTimings (List of Maps)
+      var fetchedDosage = doc['dosageTimings'] as List<dynamic>?;
+
+      if (fetchedDosage != null) {
+        dosageTimings = fetchedDosage.map((item) {
+          return "${item['dosage']} Pills at ${item['time']} on ${item['repeatDays'].join(", ")}";
+        }).toList();
+      } else {
         dosageTimings = [];
-        containerHasData = false;
-      });
-    }
+      }
 
-    setState(() => isLoading = false);
+      containerHasData = true;
+    });
+  } else {
+    setState(() {
+      pillName = "";
+      pillQuantity = "";
+      pillExpiryDate = "";
+      dosageTimings = [];
+      containerHasData = false;
+    });
   }
+
+  setState(() => isLoading = false);
+}
+
 
   bool canSavePill() {
     return selectedContainer != null &&
@@ -118,10 +130,22 @@ class _LoadNewPillsScreenState extends State<LoadNewPillsScreen> {
   }
 
   void openSetDosagePopup() async {
+    if (selectedContainer == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please select a container first.")),
+      );
+      return;
+    }
+
     final result = await showDialog<List<String>>(
       context: context,
+      barrierColor: Colors.black.withOpacity(0.5), // Dim background slightly
       builder: (BuildContext context) {
-        return SetDosageAndTimings(httpService: widget.httpService);
+        return SetDosageAndTimings(
+          httpService: widget.httpService,
+          container: selectedContainer!,
+          sourceScreen: "load_new_pills_screen",
+        );
       },
     );
 
@@ -129,8 +153,18 @@ class _LoadNewPillsScreenState extends State<LoadNewPillsScreen> {
       setState(() {
         dosageTimings = result;
       });
+
+      await firestore
+          .collection('users')
+          .doc(user!.uid)
+          .collection('pills')
+          .doc(selectedContainer)
+          .update({'dosageTimings': dosageTimings});
     }
   }
+
+
+
 
   void removeDosage(String timing) {
     setState(() {
@@ -265,15 +299,31 @@ class _LoadNewPillsScreenState extends State<LoadNewPillsScreen> {
   }
 
   Widget _buildDosageAndTimings() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        const Text("Dosage and Timings:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-        ElevatedButton(
-          onPressed: openSetDosagePopup,
-          child: const Text("Add"),
-        ),
-      ],
-    );
-  }
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const Text("Dosage and Timings:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+      dosageTimings.isNotEmpty
+          ? Column(
+              children: dosageTimings.map((dose) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Text(
+                    dose,
+                    style: const TextStyle(fontSize: 14, color: Colors.teal),
+                  ),
+                );
+              }).toList(),
+            )
+          : const Text("No Dosage Set",
+              style: TextStyle(fontSize: 14, color: Colors.red)),
+      const SizedBox(height: 10),
+      ElevatedButton(
+        onPressed: openSetDosagePopup,
+        child: const Text("Add"),
+      ),
+    ],
+  );
+}
+
 }
