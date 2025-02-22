@@ -3,8 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:medicine_dispenser/pages/pill_reload_page.dart';
 import 'package:medicine_dispenser/pages/load_new_pills_screen.dart';
-// import 'package:provider/provider.dart';
-// import 'package:medicine_dispenser/providers/pill_providers.dart';
+import 'package:medicine_dispenser/pages/set_dosage_and_timings.dart';
 import 'package:medicine_dispenser/services/http_service.dart';
 
 class PillDetailsScreen extends StatefulWidget {
@@ -65,6 +64,28 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
     }
 
     setState(() => isLoading = false);
+  }
+
+  void openSetDosagePopup() async {
+    final result = await showDialog<List<String>>(
+      context: context,
+      builder: (BuildContext context) {
+        return SetDosageAndTimings(httpService: httpService);
+      },
+    );
+
+    if (result != null) {
+      setState(() {
+        dosageTimings = result;
+      });
+
+      await firestore
+          .collection('users')
+          .doc(user!.uid)
+          .collection('pills')
+          .doc(selectedContainer)
+          .update({'dosageTimings': dosageTimings});
+    }
   }
 
   @override
@@ -155,7 +176,7 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
         onPressed: () {
           setState(() {
             selectedContainer = container;
-            fetchPillData(container); // Fetch data when selecting a container
+            fetchPillData(container);
           });
         },
         child: Text(
@@ -193,17 +214,24 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
           const Divider(color: Colors.teal, thickness: 1),
           _infoRow("Expiry Date", pillExpiryDate),
           const Divider(color: Colors.teal, thickness: 1),
-          _infoRow("Dosage & Timings", _getDosageDetails()),
+          _dosageRow(),
         ],
       ),
     );
   }
 
-  String _getDosageDetails() {
-    if (dosageTimings.isEmpty) {
-      return "Not Set";
-    }
-    return dosageTimings.map((dose) => "• $dose").join("\n");
+  Widget _dosageRow() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        const Text("Dosage & Timings",
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        ElevatedButton(
+          onPressed: openSetDosagePopup,
+          child: const Text("ADD NEW"),
+        ),
+      ],
+    );
   }
 
   Widget _infoRow(String title, String value) {
