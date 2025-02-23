@@ -48,7 +48,17 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
           pillName = doc['pillName'] ?? "Enter Pill Name";
           pillQuantity = "${doc['pillQuantity'] ?? 0} Remaining";
           pillExpiryDate = doc['expiryDate'] ?? "DD|MM|YYYY";
-          dosageTimings = List<String>.from(doc['dosageTimings'] ?? []);
+
+          // ✅ Correctly fetch dosageTimings (List of Maps)
+          var fetchedDosage = doc['dosageTimings'] as List<dynamic>?;
+
+          if (fetchedDosage != null) {
+            dosageTimings = fetchedDosage.map((item) {
+              return "${item['dosage']} Pills at ${item['time']} on ${item['repeatDays'].join(", ")}";
+            }).toList();
+          } else {
+            dosageTimings = [];
+          }
         });
       } else {
         setState(() {
@@ -63,6 +73,98 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
     }
 
     setState(() => isLoading = false);
+  }
+
+  void removeDosage(String doseToRemove) async {
+    if (user == null) return;
+
+    try {
+      DocumentSnapshot doc = await firestore
+          .collection('users')
+          .doc(user!.uid)
+          .collection('pills')
+          .doc(selectedContainer)
+          .get();
+
+      if (!doc.exists) return;
+
+      List<dynamic> existingDosages = doc['dosageTimings'] ?? [];
+
+      // Convert the string back to a map to match Firestore structure
+      Map<String, dynamic>? dosageToRemove;
+
+      for (var item in existingDosages) {
+        String formattedDosage =
+            "${item['dosage']} Pills at ${item['time']} on ${item['repeatDays'].join(", ")}";
+        if (formattedDosage == doseToRemove) {
+          dosageToRemove = item;
+          break;
+        }
+      }
+
+      if (dosageToRemove != null) {
+        await firestore
+            .collection('users')
+            .doc(user!.uid)
+            .collection('pills')
+            .doc(selectedContainer)
+            .update({
+          'dosageTimings': FieldValue.arrayRemove([dosageToRemove])
+        });
+
+        setState(() {
+          dosageTimings.remove(doseToRemove); // Remove from UI
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Dosage removed successfully!")),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error removing dosage: $e")),
+      );
+    }
+  }
+
+  void openSetDosagePopup() async {
+    if (selectedContainer.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please select a container first.")),
+      );
+      return;
+    }
+
+    final result = await showDialog<List<String>>(
+      context: context,
+      barrierColor: Colors.black.withOpacity(0.5),
+      builder: (BuildContext context) {
+        return SetDosageAndTimings(
+          httpService: httpService,
+          container: selectedContainer,
+          sourceScreen: "pill_details_screen",
+        );
+      },
+    );
+
+    if (result != null && mounted) {
+      setState(() {
+        dosageTimings = result;
+      });
+
+      try {
+        await firestore
+            .collection('users')
+            .doc(user!.uid)
+            .collection('pills')
+            .doc(selectedContainer)
+            .update({'dosageTimings': dosageTimings});
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error updating Firestore: $e")),
+        );
+      }
+    }
   }
 
   @override
