@@ -3,8 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:medicine_dispenser/pages/pill_reload_page.dart';
 import 'package:medicine_dispenser/pages/load_new_pills_screen.dart';
-// import 'package:provider/provider.dart';
-// import 'package:medicine_dispenser/providers/pill_providers.dart';
 import 'package:medicine_dispenser/services/http_service.dart';
 
 class PillDetailsScreen extends StatefulWidget {
@@ -19,7 +17,7 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
   final HttpService httpService = HttpService();
   final User? user = FirebaseAuth.instance.currentUser;
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
-  
+
   bool isLoading = false;
   String pillName = "Enter Pill Name";
   String pillQuantity = "0 Remaining";
@@ -34,9 +32,9 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
 
   void fetchPillData(String container) async {
     if (user == null) return;
-    
+
     setState(() => isLoading = true);
-    
+
     try {
       DocumentSnapshot doc = await firestore
           .collection('users')
@@ -44,7 +42,7 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
           .collection('pills')
           .doc(container)
           .get();
-          
+
       if (doc.exists) {
         setState(() {
           pillName = doc['pillName'] ?? "Enter Pill Name";
@@ -97,8 +95,9 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+              Wrap(
+                spacing: 8,
+                alignment: WrapAlignment.center,
                 children: [
                   _containerButton("A"),
                   _containerButton("B"),
@@ -106,10 +105,12 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
                 ],
               ),
               const SizedBox(height: 30),
-              isLoading
-                  ? const CircularProgressIndicator()
-                  : _infoSection(),
-              const Spacer(),
+              Expanded(
+                child: isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _infoSection(),
+              ),
+              const SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -117,15 +118,17 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) =>
-                              LoadNewPillsScreen(httpService: httpService)),
+                        builder: (context) =>
+                            LoadNewPillsScreen(httpService: httpService),
+                      ),
                     );
                   }),
                   _actionButton("RELOAD PILLS", () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const PillReloadPage()),
+                        builder: (context) => const PillReloadPage(),
+                      ),
                     );
                   }),
                   _actionButton("CLOSE", () {
@@ -141,29 +144,24 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
   }
 
   Widget _containerButton(String container) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: selectedContainer == container
-              ? Colors.teal.shade700
-              : Colors.teal.shade200,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-        ),
-        onPressed: () {
-          setState(() {
-            selectedContainer = container;
-            fetchPillData(container); // Fetch data when selecting a container
-          });
-        },
-        child: Text(
-          "Container $container",
-          style: TextStyle(
-            color: selectedContainer == container ? Colors.white : Colors.black,
-            fontWeight: FontWeight.bold,
-          ),
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: selectedContainer == container
+            ? Colors.teal.shade700
+            : Colors.teal.shade200,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+      onPressed: () {
+        setState(() {
+          selectedContainer = container;
+          fetchPillData(container);
+        });
+      },
+      child: Text(
+        "Container $container",
+        style: TextStyle(
+          color: selectedContainer == container ? Colors.white : Colors.black,
+          fontWeight: FontWeight.bold,
         ),
       ),
     );
@@ -188,11 +186,8 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _infoRow("Pill Name", pillName),
-          const Divider(color: Colors.teal, thickness: 1),
           _infoRow("Pill Quantity Remaining", pillQuantity),
-          const Divider(color: Colors.teal, thickness: 1),
           _infoRow("Expiry Date", pillExpiryDate),
-          const Divider(color: Colors.teal, thickness: 1),
           _infoRow("Dosage & Timings", _getDosageDetails()),
         ],
       ),
@@ -200,10 +195,9 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
   }
 
   String _getDosageDetails() {
-    if (dosageTimings.isEmpty) {
-      return "Not Set";
-    }
-    return dosageTimings.map((dose) => "• $dose").join("\n");
+    return dosageTimings.isEmpty
+        ? "Not Set"
+        : dosageTimings.map((dose) => "• $dose").join("\n");
   }
 
   Widget _infoRow(String title, String value) {
@@ -213,22 +207,14 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
-            flex: 2,
-            child: Text(
-              title,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
-            ),
-          ),
+              flex: 2,
+              child: Text(title,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 16))),
           Expanded(
-            flex: 3,
-            child: Text(
-              value,
-              style: const TextStyle(fontSize: 14, color: Colors.teal),
-            ),
-          ),
+              flex: 3,
+              child: Text(value,
+                  style: const TextStyle(fontSize: 14, color: Colors.teal))),
         ],
       ),
     );
@@ -236,18 +222,9 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
 
   Widget _actionButton(String text, VoidCallback onPressed) {
     return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.teal.shade400,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-      ),
+      style: ElevatedButton.styleFrom(backgroundColor: Colors.teal.shade400),
       onPressed: onPressed,
-      child: Text(
-        text,
-        style: const TextStyle(color: Colors.white),
-      ),
+      child: Text(text, style: const TextStyle(color: Colors.white)),
     );
   }
 }
