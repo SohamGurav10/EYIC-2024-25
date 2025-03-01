@@ -32,49 +32,48 @@ class _LoadNewPillsScreenState extends State<LoadNewPillsScreen> {
   }
 
   Future<void> loadPillData(String container) async {
-  if (user == null) return;
+    if (user == null) return;
 
-  setState(() => isLoading = true);
+    setState(() => isLoading = true);
 
-  DocumentSnapshot doc = await firestore
-      .collection('users')
-      .doc(user!.uid)
-      .collection('pills')
-      .doc(container)
-      .get();
+    DocumentSnapshot doc = await firestore
+        .collection('users')
+        .doc(user!.uid)
+        .collection('pills')
+        .doc(container)
+        .get();
 
-  if (doc.exists) {
-    setState(() {
-      pillName = doc['pillName'] ?? "";
-      pillQuantity = doc['pillQuantity'] ?? "";
-      pillExpiryDate = doc['expiryDate'] ?? "";
+    if (doc.exists) {
+      setState(() {
+        pillName = doc['pillName'] ?? "";
+        pillQuantity = doc['pillQuantity'] ?? "";
+        pillExpiryDate = doc['expiryDate'] ?? "";
 
-      // ✅ Correctly fetch dosageTimings (List of Maps)
-      var fetchedDosage = doc['dosageTimings'] as List<dynamic>?;
+        // ✅ Correctly fetch dosageTimings (List of Maps)
+        var fetchedDosage = doc['dosageTimings'] as List<dynamic>?;
 
-      if (fetchedDosage != null) {
-        dosageTimings = fetchedDosage.map((item) {
-          return "${item['dosage']} Pills at ${item['time']} on ${item['repeatDays'].join(", ")}";
-        }).toList();
-      } else {
+        if (fetchedDosage != null) {
+          dosageTimings = fetchedDosage.map((item) {
+            return "${item['dosage']} Pills at ${item['time']} on ${item['repeatDays'].join(", ")}";
+          }).toList();
+        } else {
+          dosageTimings = [];
+        }
+
+        containerHasData = true;
+      });
+    } else {
+      setState(() {
+        pillName = "";
+        pillQuantity = "";
+        pillExpiryDate = "";
         dosageTimings = [];
-      }
+        containerHasData = false;
+      });
+    }
 
-      containerHasData = true;
-    });
-  } else {
-    setState(() {
-      pillName = "";
-      pillQuantity = "";
-      pillExpiryDate = "";
-      dosageTimings = [];
-      containerHasData = false;
-    });
+    setState(() => isLoading = false);
   }
-
-  setState(() => isLoading = false);
-}
-
 
   bool canSavePill() {
     return selectedContainer != null &&
@@ -163,9 +162,6 @@ class _LoadNewPillsScreenState extends State<LoadNewPillsScreen> {
     }
   }
 
-
-
-
   void removeDosage(String timing) {
     setState(() {
       dosageTimings.remove(timing);
@@ -177,7 +173,8 @@ class _LoadNewPillsScreenState extends State<LoadNewPillsScreen> {
     return Scaffold(
       backgroundColor: Colors.lightBlue[50], // Light sky blue background
       appBar: AppBar(
-        title: const Text("Load New Pills", style: TextStyle(color: Colors.white)),
+        title:
+            const Text("Load New Pills", style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.teal,
         elevation: 0,
         actions: [
@@ -186,7 +183,8 @@ class _LoadNewPillsScreenState extends State<LoadNewPillsScreen> {
             onPressed: () {
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => const PillDetailsScreen()),
+                MaterialPageRoute(
+                    builder: (context) => const PillDetailsScreen()),
               );
             },
           ),
@@ -199,15 +197,20 @@ class _LoadNewPillsScreenState extends State<LoadNewPillsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text("Select a Container", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                  const Text("Select a Container",
+                      style:
+                          TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 15),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: ["A", "B", "C"].map((container) {
                       return ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: selectedContainer == container ? Colors.teal[700] : Colors.teal[300],
-                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                          backgroundColor: selectedContainer == container
+                              ? Colors.teal[700]
+                              : Colors.teal[300],
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 30, vertical: 15),
                         ),
                         onPressed: () {
                           setState(() {
@@ -215,17 +218,17 @@ class _LoadNewPillsScreenState extends State<LoadNewPillsScreen> {
                           });
                           loadPillData(container);
                         },
-                        child: Text("Container $container", style: const TextStyle(fontSize: 18, color: Colors.white)),
+                        child: Text("Container $container",
+                            style: const TextStyle(
+                                fontSize: 18, color: Colors.white)),
                       );
                     }).toList(),
                   ),
                   const SizedBox(height: 30),
-
                   if (selectedContainer != null)
                     containerHasData
                         ? _buildPillDetails()
                         : _buildPillInputFields(),
-
                   const SizedBox(height: 20),
                 ],
               ),
@@ -242,7 +245,8 @@ class _LoadNewPillsScreenState extends State<LoadNewPillsScreen> {
         Text("Expiry Date: $pillExpiryDate"),
         const SizedBox(height: 10),
         ElevatedButton(
-          style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 50)),
+          style: ElevatedButton.styleFrom(
+              minimumSize: const Size(double.infinity, 50)),
           onPressed: () => setState(() => containerHasData = false),
           child: const Text("CHANGE PILLS"),
         ),
@@ -253,13 +257,17 @@ class _LoadNewPillsScreenState extends State<LoadNewPillsScreen> {
   Widget _buildPillInputFields() {
     return Column(
       children: [
-        _buildInputField("Pill Name", (value) => setState(() => pillName = value)),
-        _buildInputField("Pill Quantity", (value) => setState(() => pillQuantity = value), isNumeric: true),
+        _buildInputField(
+            "Pill Name", (value) => setState(() => pillName = value)),
+        _buildInputField(
+            "Pill Quantity", (value) => setState(() => pillQuantity = value),
+            isNumeric: true),
         _buildDateInputField(),
         _buildDosageAndTimings(),
         const SizedBox(height: 20),
         ElevatedButton(
-          style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 50)),
+          style: ElevatedButton.styleFrom(
+              minimumSize: const Size(double.infinity, 50)),
           onPressed: canSavePill() ? savePill : null,
           child: const Text("LOAD PILLS"),
         ),
@@ -267,7 +275,8 @@ class _LoadNewPillsScreenState extends State<LoadNewPillsScreen> {
     );
   }
 
-  Widget _buildInputField(String label, Function(String) onChanged, {bool isNumeric = false, TextEditingController? controller}) {
+  Widget _buildInputField(String label, Function(String) onChanged,
+      {bool isNumeric = false, TextEditingController? controller}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 15),
       child: TextField(
@@ -285,7 +294,8 @@ class _LoadNewPillsScreenState extends State<LoadNewPillsScreen> {
   }
 
   Widget _buildDateInputField() {
-    TextEditingController dateController = TextEditingController(text: pillExpiryDate);
+    TextEditingController dateController =
+        TextEditingController(text: pillExpiryDate);
 
     return GestureDetector(
       onTap: () async {
@@ -293,37 +303,38 @@ class _LoadNewPillsScreenState extends State<LoadNewPillsScreen> {
         dateController.text = pillExpiryDate;
       },
       child: AbsorbPointer(
-        child: _buildInputField("Expiry Date", (_) {}, controller: dateController),
+        child:
+            _buildInputField("Expiry Date", (_) {}, controller: dateController),
       ),
     );
   }
 
   Widget _buildDosageAndTimings() {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      const Text("Dosage and Timings:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-      dosageTimings.isNotEmpty
-          ? Column(
-              children: dosageTimings.map((dose) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Text(
-                    dose,
-                    style: const TextStyle(fontSize: 14, color: Colors.teal),
-                  ),
-                );
-              }).toList(),
-            )
-          : const Text("No Dosage Set",
-              style: TextStyle(fontSize: 14, color: Colors.red)),
-      const SizedBox(height: 10),
-      ElevatedButton(
-        onPressed: openSetDosagePopup,
-        child: const Text("Add"),
-      ),
-    ],
-  );
-}
-
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text("Dosage and Timings:",
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        dosageTimings.isNotEmpty
+            ? Column(
+                children: dosageTimings.map((dose) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Text(
+                      dose,
+                      style: const TextStyle(fontSize: 14, color: Colors.teal),
+                    ),
+                  );
+                }).toList(),
+              )
+            : const Text("No Dosage Set",
+                style: TextStyle(fontSize: 14, color: Colors.red)),
+        const SizedBox(height: 10),
+        ElevatedButton(
+          onPressed: openSetDosagePopup,
+          child: const Text("Add"),
+        ),
+      ],
+    );
+  }
 }

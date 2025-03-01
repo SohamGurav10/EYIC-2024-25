@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:medicine_dispenser/pages/pill_reload_page.dart';
 import 'package:medicine_dispenser/pages/load_new_pills_screen.dart';
-import 'package:medicine_dispenser/pages/set_dosage_and_timings.dart';
 import 'package:medicine_dispenser/services/http_service.dart';
 
 class PillDetailsScreen extends StatefulWidget {
@@ -33,7 +32,6 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
 
   void fetchPillData(String container) async {
     if (user == null) return;
-    
     setState(() => isLoading = true);
 
     try {
@@ -49,7 +47,6 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
           pillName = doc['pillName'] ?? "Enter Pill Name";
           pillQuantity = "${doc['pillQuantity'] ?? 0} Remaining";
           pillExpiryDate = doc['expiryDate'] ?? "DD|MM|YYYY";
-          
           // ✅ Correctly fetch dosageTimings (List of Maps)
           var fetchedDosage = doc['dosageTimings'] as List<dynamic>?;
 
@@ -76,58 +73,57 @@ class _PillDetailsScreenState extends State<PillDetailsScreen> {
     setState(() => isLoading = false);
   }
 
-void removeDosage(String doseToRemove) async {
-  if (user == null) return;
+  void removeDosage(String doseToRemove) async {
+    if (user == null) return;
 
-  try {
-    DocumentSnapshot doc = await firestore
-        .collection('users')
-        .doc(user!.uid)
-        .collection('pills')
-        .doc(selectedContainer)
-        .get();
-
-    if (!doc.exists) return;
-
-    List<dynamic> existingDosages = doc['dosageTimings'] ?? [];
-
-    // Convert the string back to a map to match Firestore structure
-    Map<String, dynamic>? dosageToRemove;
-
-    for (var item in existingDosages) {
-      String formattedDosage =
-          "${item['dosage']} Pills at ${item['time']} on ${item['repeatDays'].join(", ")}";
-      if (formattedDosage == doseToRemove) {
-        dosageToRemove = item;
-        break;
-      }
-    }
-
-    if (dosageToRemove != null) {
-      await firestore
+    try {
+      DocumentSnapshot doc = await firestore
           .collection('users')
           .doc(user!.uid)
           .collection('pills')
           .doc(selectedContainer)
-          .update({
-        'dosageTimings': FieldValue.arrayRemove([dosageToRemove])
-      });
+          .get();
 
-      setState(() {
-        dosageTimings.remove(doseToRemove); // Remove from UI
-      });
+      if (!doc.exists) return;
 
+      List<dynamic> existingDosages = doc['dosageTimings'] ?? [];
+
+      // Convert the string back to a map to match Firestore structure
+      Map<String, dynamic>? dosageToRemove;
+
+      for (var item in existingDosages) {
+        String formattedDosage =
+            "${item['dosage']} Pills at ${item['time']} on ${item['repeatDays'].join(", ")}";
+        if (formattedDosage == doseToRemove) {
+          dosageToRemove = item;
+          break;
+        }
+      }
+
+      if (dosageToRemove != null) {
+        await firestore
+            .collection('users')
+            .doc(user!.uid)
+            .collection('pills')
+            .doc(selectedContainer)
+            .update({
+          'dosageTimings': FieldValue.arrayRemove([dosageToRemove])
+        });
+
+        setState(() {
+          dosageTimings.remove(doseToRemove); // Remove from UI
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Dosage removed successfully!")),
+        );
+      }
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Dosage removed successfully!")),
+        SnackBar(content: Text("Error removing dosage: $e")),
       );
     }
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Error removing dosage: $e")),
-    );
   }
-}
-
 
   void openSetDosagePopup() async {
     if (selectedContainer.isEmpty) {
@@ -199,8 +195,9 @@ void removeDosage(String doseToRemove) async {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+              Wrap(
+                spacing: 8,
+                alignment: WrapAlignment.center,
                 children: [
                   _containerButton("A"),
                   _containerButton("B"),
@@ -208,10 +205,12 @@ void removeDosage(String doseToRemove) async {
                 ],
               ),
               const SizedBox(height: 30),
-              isLoading
-                  ? const CircularProgressIndicator()
-                  : _infoSection(),
-              const Spacer(),
+              Expanded(
+                child: isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _infoSection(),
+              ),
+              const SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -219,15 +218,17 @@ void removeDosage(String doseToRemove) async {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) =>
-                              LoadNewPillsScreen(httpService: httpService)),
+                        builder: (context) =>
+                            LoadNewPillsScreen(httpService: httpService),
+                      ),
                     );
                   }),
                   _actionButton("RELOAD PILLS", () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const PillReloadPage()),
+                        builder: (context) => const PillReloadPage(),
+                      ),
                     );
                   }),
                   _actionButton("CLOSE", () {
@@ -243,106 +244,61 @@ void removeDosage(String doseToRemove) async {
   }
 
   Widget _containerButton(String container) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: selectedContainer == container
-              ? Colors.teal.shade700
-              : Colors.teal.shade200,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-        ),
-        onPressed: () {
-          setState(() {
-            selectedContainer = container;
-            fetchPillData(container);
-          });
-        },
-        child: Text(
-          "Container $container",
-          style: TextStyle(
-            color: selectedContainer == container ? Colors.white : Colors.black,
-            fontWeight: FontWeight.bold,
-          ),
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: selectedContainer == container
+            ? Colors.teal.shade700
+            : Colors.teal.shade200,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+      onPressed: () {
+        setState(() {
+          selectedContainer = container;
+          fetchPillData(container);
+        });
+      },
+      child: Text(
+        "Container $container",
+        style: TextStyle(
+          color: selectedContainer == container ? Colors.white : Colors.black,
+          fontWeight: FontWeight.bold,
         ),
       ),
     );
   }
 
   Widget _infoSection() {
-  return Container(
-    padding: const EdgeInsets.all(15),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(12),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black26,
-          blurRadius: 8,
-          spreadRadius: 2,
-          offset: const Offset(2, 4),
-        ),
-      ],
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _infoRow("Pill Name", pillName),
-        const Divider(color: Colors.teal, thickness: 1),
-        _infoRow("Pill Quantity Remaining", pillQuantity),
-        const Divider(color: Colors.teal, thickness: 1),
-        _infoRow("Expiry Date", pillExpiryDate),
-        const Divider(color: Colors.teal, thickness: 1),
-        _dosageRow(),
-      ],
-    ),
-  );
-}
-
-  Widget _dosageRow() {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      const Text(
-        "Dosage & Timings",
-        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+    return Container(
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black26,
+            blurRadius: 8,
+            spreadRadius: 2,
+            offset: const Offset(2, 4),
+          ),
+        ],
       ),
-      dosageTimings.isNotEmpty
-          ? Column(
-              children: dosageTimings.map((dose) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          dose,
-                          style: const TextStyle(fontSize: 14, color: Colors.teal),
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        onPressed: () => removeDosage(dose), // Call remove function
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(),
-            )
-          : const Text("No Dosage Set",
-              style: TextStyle(fontSize: 14, color: Colors.red)),
-      const SizedBox(height: 10),
-      ElevatedButton(
-        onPressed: openSetDosagePopup,
-        child: const Text("ADD NEW"),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _infoRow("Pill Name", pillName),
+          _infoRow("Pill Quantity Remaining", pillQuantity),
+          _infoRow("Expiry Date", pillExpiryDate),
+          _infoRow("Dosage & Timings", _getDosageDetails()),
+        ],
       ),
-    ],
-  );
-}
+    );
+  }
 
+  String _getDosageDetails() {
+    return dosageTimings.isEmpty
+        ? "Not Set"
+        : dosageTimings.map((dose) => "• $dose").join("\n");
+  }
 
   Widget _infoRow(String title, String value) {
     return Padding(
@@ -351,22 +307,14 @@ void removeDosage(String doseToRemove) async {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
-            flex: 2,
-            child: Text(
-              title,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
-            ),
-          ),
+              flex: 2,
+              child: Text(title,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 16))),
           Expanded(
-            flex: 3,
-            child: Text(
-              value,
-              style: const TextStyle(fontSize: 14, color: Colors.teal),
-            ),
-          ),
+              flex: 3,
+              child: Text(value,
+                  style: const TextStyle(fontSize: 14, color: Colors.teal))),
         ],
       ),
     );
@@ -374,18 +322,9 @@ void removeDosage(String doseToRemove) async {
 
   Widget _actionButton(String text, VoidCallback onPressed) {
     return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.teal.shade400,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-      ),
+      style: ElevatedButton.styleFrom(backgroundColor: Colors.teal.shade400),
       onPressed: onPressed,
-      child: Text(
-        text,
-        style: const TextStyle(color: Colors.white),
-      ),
+      child: Text(text, style: const TextStyle(color: Colors.white)),
     );
   }
 }

@@ -44,7 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
           print("Fetched user data: $data"); // Debugging
 
           // Use the correct field names from Firestore
-          String firstName = data['firstName'] ?? "User"; 
+          String firstName = data['firstName'] ?? "User";
           String lastName = data['lastName'] ?? "";
 
           setState(() {
@@ -60,9 +60,6 @@ class _HomeScreenState extends State<HomeScreen> {
       print("Error fetching user data: $e");
     }
   }
-
-
-
 
   Future<void> fetchPillSchedules() async {
     try {
@@ -191,8 +188,8 @@ class _HomeScreenState extends State<HomeScreen> {
         _buildInfoBox("Upcoming Alert", alarmStatus),
         const SizedBox(height: 20),
         _buildAlarmControls(),
-        const SizedBox(height: 20), 
-        _buildPillDetailsButton(),  
+        const SizedBox(height: 20),
+        _buildPillDetailsButton(),
       ],
     );
   }

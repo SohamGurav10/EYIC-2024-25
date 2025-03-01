@@ -28,7 +28,7 @@ class _SetDosageAndTimingsState extends State<SetDosageAndTimings> {
 
   bool get isDoneEnabled => dosageCount > 0 && selectedDays.isNotEmpty;
 
-  /// ✅ Fix: Ensures Navigator.pop() runs only once & checks if widget is mounted
+  
   void saveDosageToFirestore() async {
     if (user == null) {
       if (!mounted) return;
@@ -42,7 +42,8 @@ class _SetDosageAndTimingsState extends State<SetDosageAndTimings> {
       // Create a properly structured dosage map
       final Map<String, dynamic> dosageData = {
         'dosage': dosageCount,
-        'time': "${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}",
+        'time':
+            "${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}",
         'repeatDays': selectedDays,
         'alarmName': "Pills have been dispensed, take the pill!",
         'createdAt': FieldValue.serverTimestamp(), // Add timestamp for ordering
@@ -127,7 +128,10 @@ class _SetDosageAndTimingsState extends State<SetDosageAndTimings> {
           children: [
             const Text(
               "Set New Dosage & Timings",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.teal),
+              style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.teal),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
@@ -158,18 +162,23 @@ class _SetDosageAndTimingsState extends State<SetDosageAndTimings> {
                       side: BorderSide(color: Colors.teal.shade700, width: 1),
                     ),
                   ),
-                  child: const Text("Cancel", style: TextStyle(fontWeight: FontWeight.bold)),
+                  child: const Text("Cancel",
+                      style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
                 ElevatedButton(
                   onPressed: isDoneEnabled ? saveDosageToFirestore : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: isDoneEnabled ? Colors.teal.shade600 : Colors.grey,
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    backgroundColor:
+                        isDoneEnabled ? Colors.teal.shade600 : Colors.grey,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  child: const Text("Done", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  child: const Text("Done",
+                      style: TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
@@ -184,7 +193,8 @@ class _SetDosageAndTimingsState extends State<SetDosageAndTimings> {
       alignment: Alignment.centerLeft,
       child: Text(
         text,
-        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.teal),
+        style: const TextStyle(
+            fontSize: 18, fontWeight: FontWeight.bold, color: Colors.teal),
       ),
     );
   }
@@ -210,7 +220,8 @@ class _SetDosageAndTimingsState extends State<SetDosageAndTimings> {
           ),
           child: Text(
             "$dosageCount",
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
+            style: const TextStyle(
+                fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
           ),
         ),
         IconButton(
@@ -225,13 +236,12 @@ class _SetDosageAndTimingsState extends State<SetDosageAndTimings> {
     );
   }
 
-
-
   Widget _buildTimePicker() {
     return TimePickerSpinner(
       is24HourMode: true,
       normalTextStyle: const TextStyle(fontSize: 16, color: Colors.black54),
-      highlightedTextStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.teal),
+      highlightedTextStyle: const TextStyle(
+          fontSize: 18, fontWeight: FontWeight.bold, color: Colors.teal),
       spacing: 50,
       itemHeight: 45,
       isForce2Digits: true,
@@ -263,6 +273,4 @@ class _SetDosageAndTimingsState extends State<SetDosageAndTimings> {
       }).toList(),
     );
   }
-
 }
-
